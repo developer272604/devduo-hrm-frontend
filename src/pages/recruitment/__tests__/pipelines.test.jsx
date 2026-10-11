@@ -13,7 +13,7 @@ import { ToastProvider } from '../../../components/ui';
 import PipelineAdminPage from '../PipelineAdminPage';
 import AnalyticsPage from '../AnalyticsPage';
 import { RequisitionsPage } from '../HiringPages';
-import { validatePipeline, blankPipeline } from '../../../lib/recruitmentApi';
+import { validatePipeline, blankPipeline, stagesFor } from '../../../lib/recruitmentApi';
 import { apiError, calls, mockApi } from '../../payroll/__tests__/helpers';
 
 afterEach(() => {
@@ -33,6 +33,10 @@ const pipeline = (extra = {}) => ({
 });
 
 describe('validatePipeline', () => {
+  it('uses the requisition snapshot when the active pipeline version has different stages', () => {
+    const original = [stage('applied'), stage('review'), stage('offer', 'offer')];
+    expect(stagesFor({ pipeline_code: 'ENG', pipeline_version: 1, pipeline_stages: original }, [pipeline({ version: 2, stages: [stage('portfolio'), stage('offer', 'offer')] })])).toEqual(original);
+  });
   const ok = () => ({ ...blankPipeline(), code: 'ENG', name: 'Engineering' });
   it('accepts the starter pipeline', () => expect(validatePipeline(ok())).toEqual([]));
   it('mirrors the API stage rules', () => {

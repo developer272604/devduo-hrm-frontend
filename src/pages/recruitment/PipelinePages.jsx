@@ -109,7 +109,7 @@ export function PipelinePage() {
   const manage = can('recruitment.manage');
   const all = useAll(paths.applications);
   const candidates = useAll(paths.candidates);
-  const reqs = useList(`${paths.requisitions}?page=1`);
+  const reqs = useAll(paths.requisitions);
   const pipelines = useList(paths.pipelines);
   const [move, setMove] = useState(null);
   const [history, setHistory] = useState(null);
@@ -127,10 +127,10 @@ export function PipelinePage() {
       description="Candidates by stage. Every move records a reason in the history."
       action={manage && <Button onClick={() => setAdd(true)}>Add candidate</Button>}
     >
-      {all.loading ? (
+      {all.loading || reqs.loading || pipelines.loading ? (
         <Card><Skeleton /></Card>
-      ) : all.error ? (
-        <Card><ErrorState error={all.error} onRetry={all.reload} /></Card>
+      ) : all.error || reqs.error || pipelines.error ? (
+        <Card><ErrorState error={all.error || reqs.error || pipelines.error} onRetry={() => { all.reload(); reqs.reload(); pipelines.reload(); }} /></Card>
       ) : apps.length === 0 ? (
         <Card><EmptyState title="No candidates in this pipeline" description={manage ? 'Add a candidate to start.' : 'Applications will appear here.'} /></Card>
       ) : (

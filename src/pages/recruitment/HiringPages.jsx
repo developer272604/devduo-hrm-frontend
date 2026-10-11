@@ -101,6 +101,7 @@ export function RequisitionsPage() {
           { name: 'code', label: 'Code', hint: 'Capital letters, digits and underscore, e.g. SWE_II' },
           { name: 'title', label: 'Title' },
           { name: 'description', label: 'Description', textarea: true },
+          { name: 'default_pipeline_code', label: 'Default hiring pipeline', required: false, options: pipelineOptions },
         ]}
         onSubmit={async (v) => { await send('POST', paths.jobs, v); jobs.reload(); }}
         success="Job definition saved"
@@ -120,7 +121,7 @@ export function RequisitionsPage() {
           { name: 'location_id', label: 'Location', required: false, options: none(locations) },
           { name: 'recruiter_id', label: 'Recruiter', options: users },
           { name: 'hiring_manager_id', label: 'Hiring manager', options: users },
-          { name: 'pipeline_code', label: 'Hiring pipeline', required: false, options: pipelineOptions },
+          { name: 'pipeline_code', label: 'Hiring pipeline', required: false, options: pipelineOptions, hint: 'Leave blank to inherit the job default, or the workspace default when the job has none.' },
           { name: 'kind', label: 'Kind', options: KINDS },
           { name: 'openings', label: 'Openings (headcount)', type: 'number' },
           { name: 'target_date', label: 'Target date', type: 'date' },

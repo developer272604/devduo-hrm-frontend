@@ -83,6 +83,7 @@ describe('Pipeline', () => {
     perms = ['recruitment.view', 'recruitment.manage'];
     mockApi(api, {
       '/transition': { uuid: 'a1' },
+      '/pipelines': page([]),
       '/applications': page([app]),
       '/candidates': page([]),
       '/requisitions': page([{ uuid: 'r1', title: 'Engineer', status: 'open', openings: 1 }]),
@@ -100,7 +101,7 @@ describe('Pipeline', () => {
   });
   it('hides move actions without manage permission', async () => {
     perms = ['recruitment.view'];
-    mockApi(api, { '/applications': page([app]), '/candidates': page([]), '/requisitions': page([]) });
+    mockApi(api, { '/applications': page([app]), '/candidates': page([]), '/requisitions': page([]), '/pipelines': page([]) });
     show();
     expect(await screen.findByRole('button', { name: 'History for Asha Rao' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Move Asha Rao/ })).not.toBeInTheDocument();

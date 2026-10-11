@@ -54,6 +54,7 @@ export const STAGES = ['applied', 'screening', 'assessment', 'interview', 'offer
 
 /** Section navigation. `permission` is an any-of list; the nav shows only what the user may open. */
 export const NAV = [
+  { to: '/recruitment/careers', label: 'Public careers', permission: 'recruitment.manage' },
   { to: '/recruitment/analytics', label: 'Analytics', permission: 'recruitment.reports.view' },
   { to: '/recruitment/requisitions', label: 'Requisitions', permission: 'recruitment.view' },
   { to: '/recruitment/postings', label: 'Job postings', permission: 'recruitment.view' },

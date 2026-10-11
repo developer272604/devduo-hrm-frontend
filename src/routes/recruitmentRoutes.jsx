@@ -11,6 +11,7 @@ import InterviewsPage from '../pages/recruitment/InterviewsPage';
 import OffersPage from '../pages/recruitment/OffersPage';
 import OfferTemplatesPage from '../pages/recruitment/OfferTemplatesPage';
 import AnalyticsPage from '../pages/recruitment/AnalyticsPage';
+import CareersAdminPage from '../pages/recruitment/CareersAdminPage';
 import { RECRUITMENT_ACCESS } from '../lib/recruitmentApi';
 
 /** Recruitment routes (spread inside the authenticated layout route). Each page enforces its own permission. */
@@ -25,6 +26,7 @@ export const recruitmentRoutes = (
   >
     <Route index element={<RecruitmentHome />} />
     <Route path="analytics" element={<AnalyticsPage />} />
+    <Route path="careers" element={<CareersAdminPage />} />
     <Route path="requisitions" element={<RequisitionsPage />} />
     <Route path="postings" element={<PostingsPage />} />
     <Route path="candidates" element={<CandidatesPage />} />
