@@ -30,9 +30,19 @@ export function AuthProvider({ children }) {
   }, []);
   async function login(values) {
     const data = await api('/login', { method: 'POST', body: values });
+    // Password accepted but a second factor is still required: nothing is signed in yet.
+    if (data?.mfa_required) return data;
     setSession(data);
     setExpired(false);
     setError(null);
+    return data;
+  }
+  async function loginMfa(code) {
+    const data = await api('/login/mfa', { method: 'POST', body: { code } });
+    setSession(data);
+    setExpired(false);
+    setError(null);
+    return data;
   }
   async function logout() {
     await api('/logout', { method: 'POST' });
@@ -44,7 +54,7 @@ export function AuthProvider({ children }) {
     !m || Boolean((session?.tenant.settings?.modules || ['work', 'notifications', 'people', 'attendance', 'leave', 'payroll', 'recruitment', 'lifecycle']).includes(m));
   return (
     <Context.Provider
-      value={{ session, loading, error, expired, login, logout, refresh, can, enabled }}
+      value={{ session, loading, error, expired, login, loginMfa, logout, refresh, can, enabled }}
     >
       {children}
     </Context.Provider>

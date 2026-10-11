@@ -1,20 +1,12 @@
 ﻿import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Button, Card, ErrorState, PageHeader, Pagination, Skeleton } from '../../components/ui';
-import Access from '../../components/Access';
+import { Button, Card, ErrorState, Pagination, Select, Skeleton } from '../../components/ui';
+import { PeerPanel } from './PeerPanel';
+import { Page } from './parts';
 import { FormModal, ListCard, StatusBadge, Tiles, useDo } from '../../components/payroll/kit';
 import { useAuth } from '../../lib/auth';
 import { api } from '../../lib/api';
-import { clean, pageOf, paths, send, titleCase, today, unwrap, useList, useLookup } from '../../lib/performanceApi';
-
-function Page({ permission, title, description, action, children }) {
-  return (
-    <Access permission={permission} module="performance">
-      <PageHeader title={title} description={description} action={action} />
-      {children}
-    </Access>
-  );
-}
+import { clean, pageOf, paths, send, titleCase, today, unwrap, useList } from '../../lib/performanceApi';
 
 const pct = (n) => `${Number(n ?? 0)}%`;
 
@@ -25,6 +17,11 @@ export function GoalsPage() {
   const [checkin, setCheckin] = useState(null);
   const list = useList(`${paths.goals}?page=${page}`);
   const mayManage = can('performance.self|performance.goals.manage');
+  const actions = useDo();
+  const submitGoal = async (g) => {
+    await actions.run('submit', () => send('POST', paths.goal(g.uuid, 'submit'), {}), 'Goal submitted for approval');
+    list.reload();
+  };
   return (
     <Page
       permission="performance.self|performance.view"
@@ -43,7 +40,10 @@ export function GoalsPage() {
           { key: 'status', label: 'Status', render: (g) => <StatusBadge value={g.status} /> },
           {
             key: 'action', label: 'Action', render: (g) => mayManage && ['active', 'draft'].includes(g.status) && (
-              <Button variant="secondary" onClick={() => setCheckin(g)}>Add check-in</Button>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => setCheckin(g)}>Add check-in</Button>
+                {g.status === 'draft' && g.mine !== false && <Button variant="secondary" onClick={() => submitGoal(g)}>Submit for approval</Button>}
+              </div>
             ),
           },
         ]}
@@ -84,56 +84,6 @@ export function GoalsPage() {
           list.reload();
         }}
         success="Progress updated"
-      />
-    </Page>
-  );
-}
-
-export function CyclesPage() {
-  const { can } = useAuth();
-  const [page, setPage] = useState(1);
-  const list = useList(`${paths.cycles}?page=${page}`);
-  const templates = useLookup(paths.templates);
-  const actions = useDo();
-  const [create, setCreate] = useState(false);
-  const manage = can('performance.cycles.manage');
-  const run = async (cycle, action) => {
-    await actions.run(action, () => api(paths.cycle(cycle.uuid, action), { method: 'POST' }), action === 'publish' ? 'Cycle published' : 'Cycle launched');
-    list.reload();
-  };
-  return (
-    <Page permission="performance.cycles.manage" title="Review cycles" description="Configure, publish and launch review cycles." action={manage && <Button onClick={() => setCreate(true)}>Create cycle</Button>}>
-      <ListCard
-        title="Cycles"
-        list={list}
-        columns={[
-          { key: 'name', label: 'Cycle' },
-          { key: 'kind', label: 'Type', priority: 'md', render: (c) => titleCase(c.kind) },
-          { key: 'start_date', label: 'Dates', priority: 'md', render: (c) => `${c.start_date} â€“ ${c.end_date}` },
-          { key: 'reviews', label: 'Reviews', render: (c) => c.reviews ?? 0 },
-          { key: 'status', label: 'Status', render: (c) => <StatusBadge value={c.status} /> },
-          { key: 'actions', label: 'Actions', render: (c) => manage && <div className="flex gap-2">{c.status === 'draft' && <Button variant="secondary" disabled={Boolean(actions.busy)} onClick={() => run(c, 'publish')}>Publish</Button>}{c.status === 'published' && <Button disabled={Boolean(actions.busy)} onClick={() => run(c, 'launch')}>Launch</Button>}</div> },
-        ]}
-        mobile={{ title: 'name', subtitle: (c) => `${c.start_date} â€“ ${c.end_date}`, badge: (c) => <StatusBadge value={c.status} />, facts: [{ label: 'Reviews', value: (c) => c.reviews ?? 0 }] }}
-        empty={{ title: 'No cycles', description: 'Create a review cycle from an active template.' }}
-      />
-      <Pagination data={list.data ? pageOf(list.data) : null} onChange={setPage} />
-      <FormModal
-        open={create}
-        onClose={() => setCreate(false)}
-        title="Create a review cycle"
-        initial={{ kind: 'annual', start_date: today(), end_date: `${today().slice(0, 4)}-12-31` }}
-        fields={[
-          { name: 'name', label: 'Cycle name' },
-          { name: 'kind', label: 'Cycle type', options: ['annual', 'half_year', 'quarterly', 'custom'].map((v) => ({ value: v, label: titleCase(v) })) },
-          { name: 'template_uuid', label: 'Review template', options: templates.map((t) => ({ value: t.uuid, label: t.name })) },
-          { name: 'start_date', label: 'Start date', type: 'date' },
-          { name: 'end_date', label: 'End date', type: 'date' },
-          { name: 'self_due', label: 'Self review due', type: 'date', required: false },
-          { name: 'manager_due', label: 'Manager review due', type: 'date', required: false },
-        ]}
-        onSubmit={async (values) => { await send('POST', paths.cycles, clean(values)); list.reload(); }}
-        success="Review cycle created"
       />
     </Page>
   );
@@ -245,6 +195,7 @@ export function ReviewDetailPage() {
       {res.loading ? <Skeleton /> : res.error ? <ErrorState error={res.error} onRetry={res.reload} /> : review && (
         <>
           <Card className="mb-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="m-0 text-xs text-slate-500 dark:text-slate-400">Your role: {titleCase(review.role)}</p><p className="m-0 mt-2">Status: <StatusBadge value={review.status} /></p></div>{review.role === 'subject' && review.result?.finalized_at && !review.result?.acknowledged_at && can('performance.self') && <Button onClick={acknowledge} disabled={Boolean(actions.busy)}>Acknowledge result</Button>}</div></Card>
+          <PeerPanel review={review} onChanged={res.reload} />
           {review.result && <Card title="Final result" className="mb-5"><Tiles items={[{ label: 'Score', value: review.result.final_score ?? '—' }, { label: 'Rating', value: review.result.final_rating ?? '—' }]} /></Card>}
           <Card title="Responses" className="mb-5">
             <div className="space-y-3">
@@ -277,15 +228,36 @@ export function ReviewDetailPage() {
 }
 
 export function PerformanceDashboardPage() {
-  const res = useList(paths.dashboard);
+  const cycles = useList(`${paths.cycles}?per_page=50`);
+  const [cycleId, setCycleId] = useState('');
+  const res = useList(cycleId ? `${paths.dashboard}?cycle_uuid=${cycleId}` : paths.dashboard);
   const data = unwrap(res.data) ?? {};
+  const options = cycles.rows.filter((c) => ['open', 'calibration', 'closed'].includes(c.status));
   return (
-    <Page permission="performance.reports.view" title="Performance dashboard" description="Cycle completion and goal status, scoped to the people you may view.">
+    <Page permission="performance.reports.view" title="Performance dashboard" description="Cycle completion, late reviews and goal status, scoped to the people you may view.">
+      {options.length > 1 && (
+        <div className="mb-4 max-w-sm">
+          <Select label="Cycle" value={cycleId || data.cycle?.uuid || ''} options={options.map((c) => ({ value: c.uuid, label: c.name }))} onChange={(e) => setCycleId(e.target.value)} />
+        </div>
+      )}
       {res.loading ? <Skeleton /> : res.error ? <ErrorState error={res.error} onRetry={res.reload} /> : <>
         <Card title={data.cycle?.name ?? 'Current cycle'} className="mb-5"><Tiles items={[{ label: 'Reviews', value: data.reviews?.total ?? 0 }, { label: 'Late responses', value: data.late_responses ?? 0, tone: data.late_responses ? 'warn' : undefined }, { label: 'Pending calibration', value: data.calibration?.pending_changes ?? 0 }, { label: 'Goals awaiting approval', value: data.goals?.pending_approval ?? 0 }]} /></Card>
+        <ListCard
+          title="Late reviews"
+          list={{ loading: false, error: null, rows: data.late_list ?? [] }}
+          rowKey={(r) => `${r.review_uuid}-${r.reviewer_type}`}
+          columns={[
+            { key: 'employee', label: 'Employee' },
+            { key: 'reviewer_type', label: 'Late response', render: (r) => titleCase(r.reviewer_type) },
+            { key: 'due_on', label: 'Was due', priority: 'md' },
+            { key: 'days_late', label: 'Days late', render: (r) => `${r.days_late} days` },
+            { key: 'open', label: '', render: (r) => <Link className="text-brand-700 dark:text-brand-300" to={`/performance/reviews/${r.review_uuid}`}>Open review</Link> },
+          ]}
+          mobile={{ title: 'employee', subtitle: (r) => `${titleCase(r.reviewer_type)} response, due ${r.due_on}`, facts: [{ label: 'Days late', value: (r) => r.days_late }] }}
+          empty={{ title: 'Nothing is late', description: 'Pending responses past their due date are listed here. Reviewer names are never shown for peer reviews.' }}
+        />
         {data.distribution?.suppressed && <Card><p className="m-0 text-sm text-slate-500 dark:text-slate-400">Rating distribution is hidden to protect privacy for small groups.</p></Card>}
       </>}
     </Page>
   );
 }
-

@@ -16,4 +16,12 @@ Validation: production build passed, 9 component tests passed, and all 12 browse
 "# devduo-hrm-frontend" 
 "# devduo-hrm-frontend" 
 "# devduo-hrm-frontend" 
-"# devduo-hrm-frontend" 
+"# devduo-hrm-frontend"
+
+## Connecting the API (Cloudflare Pages)
+
+The app calls `/api/*` on its own origin. A static host has no API there, so the site shows "Cannot reach the Devduo API" until a backend is connected:
+
+1. Host the Laravel backend somewhere publicly reachable over HTTPS (PHP 8.2+, MySQL/MariaDB, queue worker and scheduler running). `APP_URL`, `SESSION_DOMAIN=null`, `SESSION_SECURE_COOKIE=true` and `SESSION_SAME_SIDE=lax` should match the deployed setup; run `php artisan migrate --force`.
+2. In Cloudflare Pages > Settings > Variables, set `API_ORIGIN` to that backend URL (no trailing slash). `functions/api/[[path]].js` proxies `/api/*` to it, keeping browser requests same-origin so cookies and CSRF work.
+3. Redeploy. For local work keep using `npm run dev` (Vite proxies `/api` to `http://127.0.0.1:8000`).

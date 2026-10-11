@@ -6,15 +6,17 @@ import { Brand } from '../components/Layout';
 import { Button, Input, Checkbox, FormError, Card, PageHeader, useToast } from '../components/ui';
 import { useAuth } from '../lib/auth';
 import { api } from '../lib/api';
+import { MfaChallengeForm, MfaPanel, SessionsPanel } from './security/SecurityAccountPanels';
 export function AuthPage({ mode = 'login' }) {
-  const { session, login, expired } = useAuth(),
+  const { session, login, loginMfa, expired } = useAuth(),
     navigate = useNavigate(),
     location = useLocation(),
     [params] = useSearchParams();
   const [show, setShow] = useState(false),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(null),
-    [success, setSuccess] = useState('');
+    [success, setSuccess] = useState(''),
+    [challenge, setChallenge] = useState(false);
   const [form, setForm] = useState({
     workspace: '',
     email: params.get('email') || '',
@@ -31,14 +33,28 @@ export function AuthPage({ mode = 'login' }) {
         ? 'Let’s get you back in.'
         : 'A fresh start.';
   if (session && mode === 'login') return <Navigate to="/" replace />;
+  async function submitCode(code) {
+    setBusy(true);
+    setError(null);
+    try {
+      await loginMfa(code);
+      navigate(location.state?.from || '/', { replace: true });
+    } catch (e) {
+      setError(e);
+      if (e.code === 'mfa_expired') setChallenge(false);
+    } finally {
+      setBusy(false);
+    }
+  }
   async function submit(e) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
       if (mode === 'login') {
-        await login(form);
-        navigate(location.state?.from || '/', { replace: true });
+        const result = await login(form);
+        if (result?.mfa_required) setChallenge(true);
+        else navigate(location.state?.from || '/', { replace: true });
       } else {
         const data = await api(mode === 'forgot' ? '/forgot-password' : '/reset-password', {
           method: 'POST',
@@ -143,6 +159,8 @@ export function AuthPage({ mode = 'login' }) {
                 Back to sign in <ArrowRight size={16} />
               </Link>
             </div>
+          ) : challenge ? (
+            <MfaChallengeForm onSubmit={submitCode} busy={busy} error={error} />
           ) : (
             <form onSubmit={submit}>
               <FormError error={error} />
@@ -298,6 +316,10 @@ export function SecurityPage() {
           </Button>
         </form>
       </Card>
+      <div className="mt-5 grid gap-5">
+        <MfaPanel />
+        <SessionsPanel />
+      </div>
     </>
   );
 }

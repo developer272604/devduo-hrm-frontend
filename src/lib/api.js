@@ -33,12 +33,21 @@ export async function api(path, { method = 'GET', body, signal, headers: extraHe
     ...(body !== undefined ? { body: body instanceof FormData ? body : JSON.stringify(body) } : {}),
     ...rest,
   });
+  let unreadable = false;
   const data =
     response.status === 204
       ? null
-      : await response
-          .json()
-          .catch(() => ({ message: 'The server returned an unexpected response.' }));
+      : await response.json().catch(() => {
+          unreadable = true;
+          return { message: 'The server returned an unexpected response.' };
+        });
+  // A 2xx that is not JSON means the request never reached the API (for example a static host
+  // answering /api with its own index page). Fail clearly instead of rendering broken data.
+  if (response.ok && unreadable)
+    throw new ApiError(
+      'Cannot reach the Devduo API. The site is not connected to its backend yet (see frontend/README.md, "Connecting the API").',
+      502,
+    );
   if (!response.ok) {
     if (response.status === 419) csrfToken = undefined;
     if ([401, 419].includes(response.status) && path !== '/me')
@@ -51,7 +60,7 @@ export async function api(path, { method = 'GET', body, signal, headers: extraHe
     );
   }
   // Laravel rotates the CSRF token when a session is regenerated.
-  if (['/login', '/logout', '/change-password', '/reset-password'].includes(path))
+  if (['/login', '/login/mfa', '/logout', '/change-password', '/reset-password'].includes(path))
     csrfToken = undefined;
   return data;
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button, Card, ErrorState, PageHeader, Skeleton } from '../../components/ui';
 import Access from '../../components/Access';
 import { FormModal, StatusBadge, useDo } from '../../components/payroll/kit';
@@ -37,7 +38,7 @@ export function MyLearningPage() {
   const list = useList(paths.my);
   return <Page permission="learning.self" title="My learning" description="Track your enrolments and course completion.">
     {list.loading ? <Skeleton /> : list.error ? <ErrorState error={list.error} onRetry={list.reload} /> : <div className="grid gap-4 md:grid-cols-2">
-      {list.rows.map((row) => <Card key={row.uuid} title={row.course?.title ?? 'Course'} action={<StatusBadge value={row.status} />}><p className="m-0 text-sm">{row.due_on ? `Due ${row.due_on}` : 'No due date'}</p></Card>)}
+      {list.rows.map((row) => <Card key={row.uuid} title={row.course?.title ?? 'Course'} action={<StatusBadge value={row.status} />}><p className="m-0 text-sm">{row.due_on ? `Due ${row.due_on}` : 'No due date'}</p>{['enrolled', 'in_progress'].includes(row.status) && <p className="mb-0 mt-2 text-sm"><Link className="text-brand-700 dark:text-brand-300" to={`/learning/assessment/${row.course?.uuid}`}>Take assessment</Link></p>}</Card>)}
       {!list.rows.length && <Card><p className="m-0 text-sm">You have no course enrolments.</p></Card>}
     </div>}
   </Page>;

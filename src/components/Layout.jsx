@@ -60,11 +60,11 @@ export function Brand() {
   const { session } = useAuth();
   return (
     <Link
-      className="flex items-center gap-2.5 [&>img]:size-9 [&>span]:text-2xl [&>span]:font-extrabold [&>span]:leading-none [&>span]:tracking-tight [&_small]:mt-1.5 [&_small]:block [&_small]:text-[7px] [&_small]:font-semibold [&_small]:tracking-[1.6px] [&_small]:text-slate-400 dark:[&_small]:text-slate-400"
+      className="flex items-center gap-2.5 [&>img]:h-9 [&>img]:w-auto [&>img]:rounded-xl [&>img]:bg-slate-900 [&>img]:p-1.5 [&>span]:text-2xl [&>span]:font-extrabold [&>span]:leading-none [&>span]:tracking-tight [&_small]:mt-1.5 [&_small]:block [&_small]:text-[7px] [&_small]:font-semibold [&_small]:tracking-[1.6px] [&_small]:text-slate-400 dark:[&_small]:text-slate-400"
       to="/"
       aria-label="Devduo home"
     >
-      <img src="/favicon.svg" alt="" />
+      <img src="/devduo-logo.png" alt="" />
       <span>
         {session?.tenant.settings?.brand_name || 'devduo'}
         <span className="text-brand-700 dark:text-brand-300">.</span>
