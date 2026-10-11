@@ -28,6 +28,7 @@ import { leaveHrRoutes } from './routes/leaveHrRoutes';
 import { payrollRoutes } from './routes/payrollRoutes';
 import { recruitmentRoutes } from './routes/recruitmentRoutes';
 import CareersPage from './pages/recruitment/CareersPage';
+import CandidatePortalPage from './pages/recruitment/CandidatePortalPage';
 import { lifecycleRoutes } from './routes/lifecycleRoutes';
 import { performanceRoutes } from './routes/performanceRoutes';
 import { learningRoutes } from './routes/learningRoutes';
@@ -87,6 +88,7 @@ createRoot(document.getElementById('root')).render(
             <ToastProvider>
               <Routes>
                 <Route path="/careers/:workspace" element={<CareersPage />} />
+                <Route path="/careers/:workspace/portal" element={<CandidatePortalPage />} />
                 <Route path="/login" element={<AuthPage />} />
                 <Route path="/forgot-password" element={<AuthPage mode="forgot" />} />
                 <Route path="/reset-password" element={<AuthPage mode="reset" />} />

@@ -8,7 +8,7 @@ export class ApiError extends Error {
     this.code = data?.code;
   }
 }
-export async function api(path, { method = 'GET', body, signal, headers: extraHeaders, ...rest } = {}) {
+export async function api(path, { method = 'GET', body, signal, headers: extraHeaders, sessionEvents = true, ...rest } = {}) {
   const base = import.meta.env.VITE_API_BASE || '/api';
   if (method !== 'GET' && !csrfToken) {
     const response = await fetch(`${base}/csrf`, {
@@ -50,7 +50,7 @@ export async function api(path, { method = 'GET', body, signal, headers: extraHe
     );
   if (!response.ok) {
     if (response.status === 419) csrfToken = undefined;
-    if ([401, 419].includes(response.status) && path !== '/me')
+    if (sessionEvents && [401, 419].includes(response.status) && path !== '/me')
       window.dispatchEvent(new CustomEvent('session-expired'));
     throw new ApiError(
       data?.message || 'Something went wrong. Please try again.',

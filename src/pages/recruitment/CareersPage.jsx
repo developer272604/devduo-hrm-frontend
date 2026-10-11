@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
 import { Button, ErrorState, Skeleton } from '../../components/ui';
 
@@ -32,6 +32,7 @@ export default function CareersPage() {
   const inputClass = 'block w-full rounded border border-slate-300 bg-white p-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white';
   return <main className="mx-auto max-w-3xl space-y-6 p-6">
     <h1>{data?.company ? `${data.company} careers` : 'Careers'}</h1>
+    <Link className="text-brand-700 underline" to={`/careers/${encodeURIComponent(workspace)}/portal`}>Check application status</Link>
     <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); setPage(1); setSearch(query); }}>
       <label className="grow">Search jobs<input className={inputClass} value={query} maxLength={100} onChange={(e) => setQuery(e.target.value)} /></label>
       <Button type="submit">Search</Button>

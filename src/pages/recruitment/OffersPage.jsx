@@ -29,6 +29,7 @@ export default function OffersPage() {
   const [handover, setHandover] = useState(null);
   const [dup, setDup] = useState(null);
   const [docs, setDocs] = useState(null);
+  const [release, setRelease] = useState(null);
   const manage = can('recruitment.offer.manage');
   const approve = can('recruitment.offer.approve');
   const departments = useOrg('departments');
@@ -39,6 +40,7 @@ export default function OffersPage() {
   const actions = (o) => (
     <div className="flex flex-wrap items-center gap-1.5">
       <Button variant="secondary" aria-label={`Documents for ${o.candidate_name}`} onClick={() => setDocs(o)}>Documents</Button>
+      {approve && o.status === 'sent' && <Button variant="secondary" onClick={() => setRelease(o)}>Release candidate terms</Button>}
       {manage && o.status === 'draft' && <Button variant="secondary" onClick={() => setAct({ row: o, verb: 'submit' })}>Submit</Button>}
       {approve && o.status === 'pending_approval' && (
         <>
@@ -214,6 +216,10 @@ export default function OffersPage() {
         }}
       />
       <OfferDocumentsModal offer={docs} onClose={() => setDocs(null)} />
+      <FormModal open={Boolean(release)} onClose={() => setRelease(null)} title="Release candidate-facing offer terms" intro="An approver other than the offer creator must review and release these terms. Only this plain text appears in the candidate portal; internal snapshots are not shared. Releasing again replaces the version awaiting a response." fields={[
+        { name: 'content', label: 'Candidate-facing offer terms', textarea: true },
+        { name: 'confirmed', label: 'I reviewed and approve these terms for the candidate', type: 'checkbox' },
+      ]} onSubmit={async (v) => { await send('POST', `/v1/recruitment/offers/${release.uuid}/candidate-release`, v); list.reload(); }} success="Candidate terms released" />
     </Page>
   );
 }
