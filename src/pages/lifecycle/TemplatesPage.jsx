@@ -8,10 +8,11 @@ import {
   StatusBadge,
 } from '../../components/lifecycle/kit';
 import { listOf, pageOf, paths, send, useList } from '../../lib/lifecycleApi';
+import ChecklistEditor from '../../components/lifecycle/ChecklistEditor';
 
-const KINDS = ['onboarding', 'offboarding', 'transfer', 'promotion'].map((k) => ({
+const KINDS = ['onboarding', 'offboarding', 'transfer', 'promotion', 'absence_return'].map((k) => ({
   value: k,
-  label: k.charAt(0).toUpperCase() + k.slice(1),
+  label: (k.charAt(0).toUpperCase() + k.slice(1)).replaceAll('_', ' '),
 }));
 const SAMPLE = [
   {
@@ -23,6 +24,13 @@ const SAMPLE = [
     requires_document: false,
   },
 ];
+const populationField = { name: 'population', label: 'Hiring population', required: false, options: [{ value: '', label: 'All employees' }, { value: 'new', label: 'First employment only' }, { value: 'rehire', label: 'Returning employees only' }] };
+function conditionsFor(values) {
+  const conditions = { ...(values.conditions ?? {}) };
+  delete conditions.is_rehire;
+  if (values.population) conditions.is_rehire = values.population === 'rehire';
+  return conditions;
+}
 
 /** Parses the tasks box; throws a readable error the form modal shows. */
 function parseTasks(text) {
@@ -86,6 +94,8 @@ export default function TemplatesPage() {
                   setVersion({
                     template: t,
                     tasks: JSON.stringify(latest(t)?.tasks ?? SAMPLE, null, 2),
+                    conditions: latest(t)?.conditions ?? {},
+                    population: latest(t)?.conditions?.is_rehire == null ? '' : latest(t).conditions.is_rehire ? 'rehire' : 'new',
                   })
                 }
               >
@@ -128,18 +138,15 @@ export default function TemplatesPage() {
         fields={[
           { name: 'kind', label: 'Kind', options: KINDS },
           { name: 'name', label: 'Name' },
-          {
-            name: 'tasks',
-            label: 'Tasks (JSON list)',
-            textarea: true,
-            hint: 'owner_type: manager, hr, it, finance, employee or user. due_anchor: joining, last_day or effective.',
-          },
+          populationField,
         ]}
+        extra={(v, set) => <ChecklistEditor value={v.tasks} onChange={(tasks) => set('tasks', tasks)} />}
         onSubmit={async (v) => {
           await send('POST', paths.templates, {
             kind: v.kind,
             name: v.name,
             tasks: parseTasks(v.tasks),
+            conditions: conditionsFor(v),
           });
           list.reload();
         }}
@@ -151,10 +158,12 @@ export default function TemplatesPage() {
         title={`New version of ${version?.template.name ?? ''}`}
         intro="Saved as a draft. Publish it to retire the current published version."
         initial={version ?? {}}
-        fields={[{ name: 'tasks', label: 'Tasks (JSON list)', textarea: true }]}
+        fields={[populationField]}
+        extra={(v, set) => <ChecklistEditor value={v.tasks} onChange={(tasks) => set('tasks', tasks)} />}
         onSubmit={async (v) => {
           await send('POST', paths.template(version.template.uuid, 'versions'), {
             tasks: parseTasks(v.tasks),
+            conditions: conditionsFor(v),
           });
           list.reload();
         }}

@@ -36,6 +36,9 @@ export const paths = {
 /** Section navigation; `permission` is an any-of list. */
 export const NAV = [
   { to: '/lifecycle/my', label: 'My tasks', permission: 'lifecycle.self' },
+  { to: '/lifecycle/resignations', label: 'My resignation', permission: 'lifecycle.self' },
+  { to: '/lifecycle/resignation-review', label: 'Resignation review', permission: 'people.separate' },
+  { to: '/lifecycle/returns', label: 'Return to work', permission: 'people.manage' },
   { to: '/lifecycle/exit-interview', label: 'Exit interview', permission: 'lifecycle.self' },
   { to: '/lifecycle/dashboard', label: 'Dashboard', permission: 'lifecycle.view' },
   { to: '/lifecycle/cases', label: 'Cases', permission: 'lifecycle.view' },

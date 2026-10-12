@@ -8,6 +8,8 @@ import TemplatesPage from '../pages/lifecycle/TemplatesPage';
 import { CasesPage, CaseDetailPage } from '../pages/lifecycle/CasePages';
 import MovesPage from '../pages/lifecycle/MovesPage';
 import AlumniPage from '../pages/lifecycle/AlumniPage';
+import ResignationsPage from '../pages/lifecycle/ResignationsPage';
+import ReturnsPage from '../pages/lifecycle/ReturnsPage';
 import { LIFECYCLE_ACCESS } from '../lib/lifecycleApi';
 
 /** Lifecycle routes (spread inside the authenticated layout route). Each page enforces its own permission. */
@@ -22,6 +24,9 @@ export const lifecycleRoutes = (
   >
     <Route index element={<LifecycleHome />} />
     <Route path="my" element={<MyTasksPage />} />
+    <Route path="resignations" element={<ResignationsPage />} />
+    <Route path="resignation-review" element={<ResignationsPage review />} />
+    <Route path="returns" element={<ReturnsPage />} />
     <Route path="exit-interview" element={<ExitInterviewPage />} />
     <Route path="dashboard" element={<DashboardPage />} />
     <Route path="cases" element={<CasesPage />} />

@@ -18,9 +18,9 @@ export function MyTasksPage() {
   const done = (t) => t.status === 'done' || t.status === 'skipped' || t.status === 'cancelled';
   const action = (t) =>
     done(t) ? null : (
-      <Button variant="secondary" aria-label={`Complete ${t.title}`} onClick={() => setTarget(t)}>
+      <div>{Boolean(t.blocked_by?.length) && <p className="text-xs text-amber-700 dark:text-amber-300">Waiting for: {t.blocked_by.map((b) => b.title).join(', ')}</p>}<Button disabled={Boolean(t.blocked_by?.length)} variant="secondary" aria-label={`Complete ${t.title}`} onClick={() => setTarget(t)}>
         Complete
-      </Button>
+      </Button></div>
     );
   return (
     <Page
@@ -75,9 +75,10 @@ export function MyTasksPage() {
         open={Boolean(target)}
         onClose={() => setTarget(null)}
         title={`Complete: ${target?.title ?? ''}`}
-        intro={target?.requires_document ? 'This task needs a document reference.' : undefined}
+        intro={target?.acknowledgment_text || (target?.requires_document ? 'This task needs a document reference.' : undefined)}
         initial={{ note: '', document_ref: '' }}
         fields={[
+          ...(target?.acknowledgment_text ? [{ name: 'acknowledged', label: 'I have read and acknowledge this statement', type: 'checkbox' }] : []),
           {
             name: 'document_ref',
             label: 'Document reference',
