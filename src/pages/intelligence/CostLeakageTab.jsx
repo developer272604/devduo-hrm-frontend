@@ -158,6 +158,18 @@ function SettingsDialog({ onClose, onDone }) {
               onChange={(e) => setValues({ ...t, [k]: Number(e.target.value) })}
             />
           ))}
+          <label className="flex items-start gap-2 text-xs">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 accent-brand-500"
+              checked={Boolean(t.duplicate_cross_employee)}
+              onChange={(e) => setValues({ ...t, duplicate_cross_employee: e.target.checked })}
+            />
+            <span>
+              Also flag identical expense lines claimed by different people
+              <span className="block text-slate-500">Off by default: shared fares and set meals make this noisy.</span>
+            </span>
+          </label>
           <fieldset className="space-y-2 text-xs">
             <legend className="font-semibold">Turn rules off</legend>
             {(s.data?.rules || []).map((r) => (
