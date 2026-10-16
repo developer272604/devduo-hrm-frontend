@@ -1,10 +1,11 @@
 import { Route } from 'react-router-dom';
-import { FileSearch, Gavel, Plug, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRightLeft, FileSearch, Gavel, Plug, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import {
   AccessReviewsPage,
   IntegrationsPage,
 } from '../pages/enterprise/EnterprisePages';
 import { IntelligenceCenterPage } from '../pages/intelligence/IntelligenceCenterPage';
+import { MigrationStudioPage } from '../pages/enterprise/MigrationStudioPage';
 import { AuditReviewPage, LegalHoldPage, SecuritySettingsPage } from '../pages/security/SecurityAdminPages';
 import {
   ApiClientsPage,
@@ -20,6 +21,7 @@ export const enterpriseRoutes = (
     <Route path="integrations/api-clients" element={<ApiClientsPage />} />
     <Route path="integrations/webhooks" element={<WebhooksPage />} />
     <Route path="integrations/imports" element={<ImportProfilesPage />} />
+    <Route path="integrations/migration" element={<MigrationStudioPage />} />
     <Route path="security/access-reviews" element={<AccessReviewsPage />} />
     <Route path="security/settings" element={<SecuritySettingsPage />} />
     <Route path="security/audit" element={<AuditReviewPage />} />
@@ -34,6 +36,13 @@ export const enterpriseNavItems = [
     label: 'Integrations',
     icon: Plug,
     permission: 'integrations.view|integrations.manage',
+    module: 'integrations',
+  },
+  {
+    to: '/integrations/migration',
+    label: 'Migration Studio',
+    icon: ArrowRightLeft,
+    permission: 'integrations.migration.view',
     module: 'integrations',
   },
   {

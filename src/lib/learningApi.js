@@ -38,4 +38,4 @@ export const learningPaths = {
   exportCsv: `${L}/reports/export`,
 };
 export const API_BASE = () => import.meta.env.VITE_API_BASE || '/api';
-export const LEARNING_ACCESS = 'learning.self|learning.view|learning.catalog.manage|learning.skills.manage|learning.enrol.manage|learning.enrol.approve|learning.assign.manage|learning.reports.view';
+export const LEARNING_ACCESS = 'learning.self|learning.view|learning.catalog.manage|learning.skills.manage|learning.enrol.manage|learning.enrol.approve|learning.assign.manage|learning.reports.view|talent.self|talent.post|talent.approve|talent.manage';

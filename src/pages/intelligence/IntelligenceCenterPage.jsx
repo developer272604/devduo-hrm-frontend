@@ -16,6 +16,8 @@ import {
 } from '../../components/ui';
 import { send, useAction, useList } from '../../lib/timeOfficeApi';
 import { useAuth } from '../../lib/auth';
+import { CostLeakageTab } from './CostLeakageTab';
+import { WorkforcePlanPanel } from './WorkforcePlanPanel';
 
 const API = '/v1/intelligence';
 const tone = { critical: 'amber', action_required: 'amber', warning: 'purple', info: 'neutral' };
@@ -420,6 +422,7 @@ export function IntelligenceCenterPage() {
   const items = [{ value: 'findings', label: 'Findings' }];
   if (can('intelligence.scenarios.run')) items.push({ value: 'scenarios', label: 'Scenarios' });
   if (can('intelligence.risk_signals.view')) items.push({ value: 'risk', label: 'Indicators' });
+  if (can('intelligence.leakage.view')) items.push({ value: 'leakage', label: 'Cost leakage' });
   return (
     <>
       <PageHeader
@@ -430,8 +433,14 @@ export function IntelligenceCenterPage() {
       <Tabs items={items} value={tab} onChange={setTab} />
       <div className="mt-5">
         {tab === 'findings' && <FindingsTab canManage={can('intelligence.manage')} />}
-        {tab === 'scenarios' && <ScenariosTab />}
+        {tab === 'scenarios' && (
+          <>
+            <ScenariosTab />
+            <WorkforcePlanPanel />
+          </>
+        )}
         {tab === 'risk' && <RiskTab canSettings={can('intelligence.settings.manage')} />}
+        {tab === 'leakage' && <CostLeakageTab canManage={can('intelligence.leakage.manage')} />}
       </div>
     </>
   );

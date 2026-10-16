@@ -47,7 +47,7 @@ describe('Lifecycle navigation', () => {
   it('shows only self sections to an employee', () => {
     perms = ['lifecycle.self'];
     show();
-    expect(links()).toEqual(['My tasks', 'Exit interview']);
+    expect(links()).toEqual(['My tasks', 'My resignation', 'Exit interview']);
   });
   it('shows manager sections with their keys only', () => {
     perms = ['lifecycle.view', 'lifecycle.moves.approve'];

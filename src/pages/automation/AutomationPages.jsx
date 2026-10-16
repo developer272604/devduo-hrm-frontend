@@ -6,6 +6,7 @@ import { FormModal, StatusBadge, useDo } from '../../components/payroll/kit';
 import { useList, send, today } from '../../lib/timeOfficeApi';
 import { useAuth } from '../../lib/auth';
 import { download, query } from '../../lib/api';
+import { WorkflowGeneratorCard } from './WorkflowGeneratorCard';
 const W = '/v1/workflows';
 const A = '/v1/analytics';
 function Page({ module, title, description, action, children }) {
@@ -304,6 +305,7 @@ export function WorkflowsPage() {
         can('workflows.manage') && <Button onClick={() => setCreate(true)}>New workflow</Button>
       }
     >
+      {can('workflows.manage') && <WorkflowGeneratorCard onSaved={definitions.reload} />}
       {can('workflows.manage') && (
         <Card title="Definitions">
           <Result resource={definitions}>

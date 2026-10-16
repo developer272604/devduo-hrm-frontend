@@ -4,6 +4,7 @@ import Access from '../components/Access';
 import LearningLayout, { LearningHome } from '../pages/learning/LearningLayout';
 import { CatalogPage, MyLearningPage, MySkillsPage, PathsPage } from '../pages/learning/LearningPages';
 import { AssessmentPage, CertificatesPage, CompliancePage, DashboardPage, SkillsAdminPage, TeamLearningPage, TeamSkillsPage } from '../pages/learning/LearningManagePages';
+import { TalentPage } from '../pages/learning/TalentPages';
 import { LEARNING_ACCESS } from '../lib/learningApi';
 
 export const learningRoutes = <Route path="learning" element={<Access permission={LEARNING_ACCESS} module="learning"><LearningLayout /></Access>}>
@@ -19,6 +20,7 @@ export const learningRoutes = <Route path="learning" element={<Access permission
   <Route path="team-skills" element={<TeamSkillsPage />} />
   <Route path="skills-admin" element={<SkillsAdminPage />} />
   <Route path="dashboard" element={<DashboardPage />} />
+  <Route path="talent" element={<TalentPage />} />
 </Route>;
 
 export const learningNavItem = { to: '/learning', label: 'Learning', icon: BookOpen, permission: LEARNING_ACCESS, module: 'learning' };
@@ -27,6 +29,7 @@ export const NAV = [
   { to: '/learning/my', label: 'My learning', permission: 'learning.self' },
   { to: '/learning/paths', label: 'Learning paths', permission: 'learning.self|learning.view|learning.catalog.manage' },
   { to: '/learning/skills', label: 'My skills', permission: 'learning.self' },
+  { to: '/learning/talent', label: 'Internal opportunities', permission: 'talent.self|talent.post|talent.approve|talent.manage' },
   { to: '/learning/certificates', label: 'Certificates', permission: 'learning.self|learning.view|learning.catalog.manage' },
   { to: '/learning/team', label: 'Team learning', permission: 'learning.enrol.manage|learning.enrol.approve|learning.view' },
   { to: '/learning/compliance', label: 'Compliance', permission: 'learning.assign.manage|learning.view' },
