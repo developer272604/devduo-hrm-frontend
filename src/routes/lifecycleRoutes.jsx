@@ -10,6 +10,7 @@ import MovesPage from '../pages/lifecycle/MovesPage';
 import AlumniPage from '../pages/lifecycle/AlumniPage';
 import ResignationsPage from '../pages/lifecycle/ResignationsPage';
 import ReturnsPage from '../pages/lifecycle/ReturnsPage';
+import ContinuityPage from '../pages/lifecycle/ContinuityPage';
 import { LIFECYCLE_ACCESS } from '../lib/lifecycleApi';
 
 /** Lifecycle routes (spread inside the authenticated layout route). Each page enforces its own permission. */
@@ -35,6 +36,7 @@ export const lifecycleRoutes = (
     <Route path="templates" element={<TemplatesPage />} />
     <Route path="moves" element={<MovesPage />} />
     <Route path="alumni" element={<AlumniPage />} />
+    <Route path="continuity" element={<ContinuityPage />} />
   </Route>
 );
 

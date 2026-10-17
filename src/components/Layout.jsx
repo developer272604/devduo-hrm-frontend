@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ThemeToggle } from '../lib/theme';
 import { NavLink, Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -73,11 +73,44 @@ export function Brand() {
     </Link>
   );
 }
+/** Sidebar sections, in order. Items are placed by their module so new modules never disappear (unknown modules fall into the last section). */
+export const NAV_GROUPS = [
+  { id: 'people', label: 'People', modules: ['people', 'lifecycle', 'recruitment', 'performance', 'learning', 'experience'] },
+  { id: 'time', label: 'Time & pay', modules: ['attendance', 'leave', 'payroll'] },
+  { id: 'operations', label: 'Operations', modules: ['assets', 'expenses', 'travel'] },
+  { id: 'insight', label: 'Automation & insight', modules: ['workflows', 'analytics', 'intelligence'] },
+  { id: 'platform', label: 'Platform', modules: ['integrations', 'security'] },
+];
+const PINNED_MODULES = [undefined, 'work', 'notifications'];
+const STORAGE_KEY = 'devduo.nav.groups';
+
+export function groupOf(item) {
+  if (PINNED_MODULES.includes(item.module)) return null;
+  return NAV_GROUPS.find((g) => g.modules.includes(item.module))?.id ?? NAV_GROUPS[NAV_GROUPS.length - 1].id;
+}
+
+/** The most specific nav item for a path (longest matching prefix), so '/leave/hr' beats '/leave'. */
+export function activeItemFor(items, pathname) {
+  return items
+    .filter((x) => (x.to === '/' ? pathname === '/' : pathname === x.to || pathname.startsWith(`${x.to}/`)))
+    .sort((a, b) => b.to.length - a.to.length)[0];
+}
+
+function readOpenMap() {
+  try {
+    const v = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || '{}');
+    return v && typeof v === 'object' ? v : {};
+  } catch {
+    return {};
+  }
+}
+
 export default function Layout() {
   const { session, can, enabled, logout } = useAuth(),
     [collapsed, setCollapsed] = useState(false),
     [mobile, setMobile] = useState(false),
-    [org, setOrg] = useState(true);
+    [org, setOrg] = useState(true),
+    [openMap, setOpenMap] = useState(readOpenMap);
   const location = useLocation(),
     navigate = useNavigate(),
     toast = useToast();
@@ -178,6 +211,29 @@ export default function Layout() {
     { to: '/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.view' },
     { to: '/settings', label: 'Settings', icon: Settings, permission: 'settings.manage' },
   ];
+  const visible = nav.filter((x) => can(x.permission) && enabled(x.module));
+  const pinned = nav.filter((x) => groupOf(x) === null);
+  const groups = nav.reduce((acc, x) => {
+    const id = groupOf(x);
+    if (id) (acc[id] ||= []).push(x);
+    return acc;
+  }, {});
+  const activeItem = activeItemFor(visible, location.pathname);
+  const activeGroupId = location.pathname.startsWith('/organization') ? 'people' : activeItem ? groupOf(activeItem) : null;
+  const isOpen = (id) => (id in openMap ? Boolean(openMap[id]) : id === activeGroupId);
+  const toggleGroup = (id) => {
+    const next = { ...openMap, [id]: !isOpen(id) };
+    setOpenMap(next);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      /* storage can be blocked; the menu still works for this visit */
+    }
+  };
+  // Navigating into a section (from a link elsewhere) reveals it without losing the user's other choices.
+  useEffect(() => {
+    if (activeGroupId && openMap[activeGroupId] === false) setOpenMap((m) => ({ ...m, [activeGroupId]: true }));
+  }, [activeGroupId]); // eslint-disable-line react-hooks/exhaustive-deps
   const item = (x) =>
     can(x.permission) &&
     enabled(x.module) && (
@@ -185,6 +241,7 @@ export default function Layout() {
         key={x.to}
         to={x.to}
         end={x.to === '/'}
+        className={() => (activeItem?.to === x.to ? 'active' : undefined)}
         title={collapsed ? x.label : undefined}
         onClick={() => setMobile(false)}
       >
@@ -192,6 +249,31 @@ export default function Layout() {
         <span>{x.label}</span>
       </NavLink>
     );
+  const orgBlock = (
+    <>
+      <button
+        className="my-0.5 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-xs text-slate-500 dark:text-slate-400 hover:bg-brand-50 dark:hover:bg-brand-950 [&>svg:last-child]:ml-auto group-data-[collapsed=true]/shell:[&>span]:hidden group-data-[collapsed=true]/shell:[&>svg:last-child]:hidden"
+        onClick={() => {
+          if (collapsed) setCollapsed(false);
+          setOrg(!org);
+        }}
+        aria-expanded={org}
+      >
+        <Building2 size={19} />
+        <span>Organization</span>
+        <ChevronDown size={14} />
+      </button>
+      {org && !collapsed && (
+        <div className="mb-3 ml-5 mt-1 border-l border-slate-200 dark:border-slate-700 pl-4 [&>a]:block [&>a]:rounded [&>a]:px-2 [&>a]:py-1.5 [&>a]:text-[11px] [&>a]:text-slate-500 dark:[&>a]:text-slate-400 [&>a.active]:bg-brand-50 dark:[&>a.active]:bg-brand-950 [&>a.active]:font-semibold [&>a.active]:text-brand-700 dark:[&>a.active]:text-brand-300">
+          {Object.entries(organizationTypes).map(([key, label]) => (
+            <NavLink key={key} to={`/organization/${key}`} onClick={() => setMobile(false)}>
+              {label}
+            </NavLink>
+          ))}
+        </div>
+      )}
+    </>
+  );
   const navigation = (
     <>
       <div className="mb-5 flex items-center gap-2.5 border-y border-slate-100 dark:border-slate-800 px-2 py-3 [&>div]:min-w-0 [&>div]:flex-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_small]:mt-1 [&_small]:block [&_small]:text-[10px] [&>svg]:text-slate-400 dark:[&>svg]:text-slate-400 group-data-[collapsed=true]/shell:hidden">
@@ -207,34 +289,34 @@ export default function Layout() {
       <div className="mb-3 mt-1 px-3 text-[9px] font-semibold tracking-widest text-slate-400 dark:text-slate-400 group-data-[collapsed=true]/shell:hidden">
         WORKSPACE
       </div>
-      <nav aria-label="Main navigation">
-        {nav.map(item)}
-        {can('organization.view') && (
-          <>
+      <nav aria-label="Main navigation">{pinned.map(item)}</nav>
+      {NAV_GROUPS.map((g) => {
+        const items = (groups[g.id] || []).filter((x) => can(x.permission) && enabled(x.module));
+        const showOrg = g.id === 'people' && can('organization.view');
+        if (!items.length && !showOrg) return null;
+        const open = collapsed || isOpen(g.id);
+        const holdsActive = activeGroupId === g.id;
+        return (
+          <div key={g.id} className="mt-1 group-data-[collapsed=true]/shell:mt-2 group-data-[collapsed=true]/shell:border-t group-data-[collapsed=true]/shell:border-slate-100 group-data-[collapsed=true]/shell:pt-2 dark:group-data-[collapsed=true]/shell:border-slate-800">
             <button
-              className="my-0.5 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-xs text-slate-500 dark:text-slate-400 hover:bg-brand-50 dark:hover:bg-brand-950 [&>svg:last-child]:ml-auto group-data-[collapsed=true]/shell:[&>span]:hidden group-data-[collapsed=true]/shell:[&>svg:last-child]:hidden"
-              onClick={() => {
-                if (collapsed) setCollapsed(false);
-                setOrg(!org);
-              }}
-              aria-expanded={org}
+              type="button"
+              className={`mb-1 mt-2 flex w-full items-center justify-between rounded px-3 py-1.5 text-left text-[9px] font-semibold tracking-widest hover:bg-brand-50 dark:hover:bg-brand-950 group-data-[collapsed=true]/shell:hidden ${holdsActive ? 'text-brand-700 dark:text-brand-300' : 'text-slate-400 dark:text-slate-400'}`}
+              aria-expanded={open}
+              aria-controls={`nav-group-${g.id}`}
+              onClick={() => toggleGroup(g.id)}
             >
-              <Building2 size={19} />
-              <span>Organization</span>
-              <ChevronDown size={14} />
+              <span>{g.label.toUpperCase()}</span>
+              <ChevronDown size={13} className={`transition-transform ${open ? '' : '-rotate-90'}`} />
             </button>
-            {org && !collapsed && (
-              <div className="mb-5 ml-5 mt-1 border-l border-slate-200 dark:border-slate-700 pl-4 [&>a]:block [&>a]:rounded [&>a]:px-2 [&>a]:py-1.5 [&>a]:text-[11px] [&>a]:text-slate-500 dark:[&>a]:text-slate-400 [&>a.active]:bg-brand-50 dark:[&>a.active]:bg-brand-950 [&>a.active]:font-semibold [&>a.active]:text-brand-700 dark:[&>a.active]:text-brand-300">
-                {Object.entries(organizationTypes).map(([key, label]) => (
-                  <NavLink key={key} to={`/organization/${key}`} onClick={() => setMobile(false)}>
-                    {label}
-                  </NavLink>
-                ))}
-              </div>
+            {open && (
+              <nav id={`nav-group-${g.id}`} aria-label={g.label}>
+                {items.map(item)}
+                {showOrg && orgBlock}
+              </nav>
             )}
-          </>
-        )}
-      </nav>
+          </div>
+        );
+      })}
       {admin.some((x) => can(x.permission)) && (
         <>
           <div className="mb-3 mt-1 px-3 text-[9px] font-semibold tracking-widest text-slate-400 dark:text-slate-400 group-data-[collapsed=true]/shell:hidden">

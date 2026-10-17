@@ -21,6 +21,7 @@ import {
   unwrap,
   useList,
 } from '../../lib/lifecycleApi';
+import { ExitDependencyGraph } from './ExitDependencyGraph';
 
 const KIND = [
   { value: 'onboarding', label: 'Onboarding' },
@@ -290,6 +291,7 @@ export function CaseDetailPage() {
           </Card>
 
           {offboarding && <ClearanceCard uuid={uuid} />}
+          {offboarding && c.employee?.uuid && <ExitDependencyGraph employeeUuid={c.employee.uuid} />}
 
           <Card title="Tasks" className="mb-5">
             {tasks.length === 0 ? (

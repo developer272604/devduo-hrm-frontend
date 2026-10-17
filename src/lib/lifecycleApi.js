@@ -50,6 +50,7 @@ export const NAV = [
     permission: 'lifecycle.moves.manage|lifecycle.moves.approve',
   },
   { to: '/lifecycle/alumni', label: 'Alumni', permission: 'lifecycle.alumni.manage' },
+  { to: '/lifecycle/continuity', label: 'Knowledge continuity', permission: 'lifecycle.continuity.view' },
 ];
 export const LIFECYCLE_ACCESS = [...new Set(NAV.flatMap((n) => n.permission.split('|')))].join('|');
 export const clean = (o) =>

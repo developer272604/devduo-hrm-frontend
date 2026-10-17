@@ -92,3 +92,27 @@ it('shows only the tabs the user may use', async () => {
   expect(await screen.findByRole('tab', { name: 'Posted by me' })).toBeInTheDocument();
   expect(screen.getByRole('tab', { name: 'Release requests' })).toBeInTheDocument();
 });
+
+it('shows career paths with gaps, courses and opportunities, and the not-a-promise notice', async () => {
+  const career = {
+    current_designation: 'Engineer',
+    limitations: 'It is not a promise of a move or promotion.',
+    roles: [
+      {
+        designation: 'Senior Engineer',
+        readiness: 0.33,
+        ready_now: false,
+        skills_met: ['Python'],
+        gaps: [{ skill: 'SQL', required: 'Intermediate', current: 'none', mandatory: true, courses: [{ title: 'SQL basics' }], opportunities: [{ title: 'Reporting revamp' }] }],
+      },
+    ],
+  };
+  api.mockImplementation((path) => Promise.resolve(path.includes('/my/career') ? career : path.includes('/talent/opportunities') ? browse : { items: [] }));
+  render(<TalentPage />);
+  fireEvent.click(await screen.findByRole('tab', { name: 'Career paths' }));
+  expect(await screen.findByText('Senior Engineer')).toBeInTheDocument();
+  expect(screen.getByText(/Fit 33%/)).toBeInTheDocument();
+  expect(screen.getByText(/Courses: SQL basics/)).toBeInTheDocument();
+  expect(screen.getByText(/Open opportunities to practise it: Reporting revamp/)).toBeInTheDocument();
+  expect(screen.getByText(/not a promise/)).toBeInTheDocument();
+});

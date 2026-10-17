@@ -1,11 +1,12 @@
 import { Route } from 'react-router-dom';
-import { ArrowRightLeft, FileSearch, Gavel, Plug, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRightLeft, ClipboardCheck, FileSearch, Gavel, Plug, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import {
   AccessReviewsPage,
   IntegrationsPage,
 } from '../pages/enterprise/EnterprisePages';
 import { IntelligenceCenterPage } from '../pages/intelligence/IntelligenceCenterPage';
 import { MigrationStudioPage } from '../pages/enterprise/MigrationStudioPage';
+import CompliancePage from '../pages/security/CompliancePage';
 import { AuditReviewPage, LegalHoldPage, SecuritySettingsPage } from '../pages/security/SecurityAdminPages';
 import {
   ApiClientsPage,
@@ -26,6 +27,7 @@ export const enterpriseRoutes = (
     <Route path="security/settings" element={<SecuritySettingsPage />} />
     <Route path="security/audit" element={<AuditReviewPage />} />
     <Route path="security/legal-holds" element={<LegalHoldPage />} />
+    <Route path="security/compliance" element={<CompliancePage />} />
     <Route path="intelligence" element={<IntelligenceCenterPage />} />
   </>
 );
@@ -71,6 +73,13 @@ export const enterpriseNavItems = [
     label: 'Legal holds',
     icon: Gavel,
     permission: 'security.legal_hold.manage|security.retention.manage',
+    module: 'security',
+  },
+  {
+    to: '/security/compliance',
+    label: 'Compliance evidence',
+    icon: ClipboardCheck,
+    permission: 'security.compliance.view',
     module: 'security',
   },
   {

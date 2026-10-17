@@ -459,10 +459,48 @@ function ApprovalsTab() {
   );
 }
 
+export const readinessPct = (r) => `${Math.round((r ?? 0) * 100)}%`;
+
+function CareerTab() {
+  const list = useList(`${T}/my/career`);
+  if (list.loading) return <Skeleton />;
+  if (list.error) return <ErrorState error={list.error} onRetry={list.reload} />;
+  const d = list.data;
+  return (
+    <Card title={`Roles that fit my skills${d.current_designation ? ` (today: ${d.current_designation})` : ''}`}>
+      {d.roles.length ? (
+        <ul className="m-0 list-none space-y-3 p-5">
+          {d.roles.map((r) => (
+            <li key={r.designation} className="rounded-lg border border-slate-200 p-4 text-xs dark:border-slate-700">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <strong className="text-sm">{r.designation}</strong>
+                <Badge tone={r.ready_now ? 'green' : 'amber'}>{r.ready_now ? 'meets required skills' : 'skills to build'}</Badge>
+                <span>Fit {readinessPct(r.readiness)}</span>
+              </div>
+              {r.skills_met.length > 0 && <p className="m-0 mb-1 text-slate-600 dark:text-slate-300">You already have: {r.skills_met.join(', ')}</p>}
+              {r.gaps.map((g) => (
+                <div key={g.skill} className="mb-1 text-amber-800 dark:text-amber-200">
+                  {g.skill}: needs {g.required}, you have {g.current}
+                  {g.mandatory ? ' (required)' : ' (nice to have)'}
+                  {g.courses.length > 0 && <span className="block text-slate-600 dark:text-slate-300">Courses: {g.courses.map((c) => c.title).join(', ')}</span>}
+                  {g.opportunities.length > 0 && <span className="block text-slate-600 dark:text-slate-300">Open opportunities to practise it: {g.opportunities.map((o) => o.title).join(', ')}</span>}
+                </div>
+              ))}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <EmptyState title="No role requirements to compare yet" description="Your company has not configured skill requirements for other roles, or your skills are not recorded yet." />
+      )}
+      <p className="m-0 px-5 pb-5 text-xs text-slate-500">{d.limitations}</p>
+    </Card>
+  );
+}
+
 export function TalentPage() {
   const { can } = useAuth();
   const tabs = [];
-  if (can('talent.self')) tabs.push({ value: 'browse', label: 'Open opportunities' }, { value: 'mine', label: 'My responses' });
+  if (can('talent.self')) tabs.push({ value: 'browse', label: 'Open opportunities' }, { value: 'mine', label: 'My responses' }, { value: 'career', label: 'Career paths' });
   if (can('talent.post|talent.manage')) tabs.push({ value: 'posted', label: 'Posted by me' });
   if (can('talent.approve|talent.manage')) tabs.push({ value: 'approvals', label: 'Release requests' });
   const [tab, setTab] = useState(tabs[0]?.value);
@@ -473,6 +511,7 @@ export function TalentPage() {
       <div className="mt-5">
         {tab === 'browse' && <BrowseTab />}
         {tab === 'mine' && <MineTab />}
+        {tab === 'career' && <CareerTab />}
         {tab === 'posted' && <PostedTab />}
         {tab === 'approvals' && <ApprovalsTab />}
       </div>
