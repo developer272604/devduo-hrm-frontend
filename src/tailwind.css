@@ -13,3 +13,30 @@
   --color-brand-900: #391e73;
   --color-brand-950: #241342;
 }
+
+/* Readability: larger base size (every rem-based text-* class scales with it), medium weight, darker secondary text. */
+html {
+  font-size: 112.5%;
+}
+body {
+  font-weight: 500;
+}
+:root {
+  --color-slate-400: #64748b;
+  --color-slate-500: #475569;
+  --color-slate-600: #334155;
+}
+.dark {
+  --color-slate-400: #b8c4d4;
+  --color-slate-500: #a3b1c4;
+  --color-slate-600: #cbd5e1;
+}
+.text-\[9px\] {
+  font-size: 11px;
+}
+.text-\[10px\] {
+  font-size: 12px;
+}
+.text-\[11px\] {
+  font-size: 13px;
+}

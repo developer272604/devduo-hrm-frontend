@@ -16,6 +16,7 @@ import Layout from './components/Layout';
 import { RegisterPage } from './pages/Register';
 import { AccountLocked } from './components/AccountStatus';
 import { OwnerPanelPage, OwnerCompanyPage } from './pages/owner/OwnerPages';
+import { OwnerPlansPage } from './pages/owner/PlansPage';
 import { AuthPage, SecurityPage } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Organization from './pages/Organization';
@@ -163,6 +164,7 @@ createRoot(document.getElementById('root')).render(
                       }
                     />
                     <Route path="owner" element={<OwnerPanelPage />} />
+                    <Route path="owner/plans" element={<OwnerPlansPage />} />
                     <Route path="owner/companies/:id" element={<OwnerCompanyPage />} />
                     <Route path="permissions" element={<Navigate to="/roles" replace />} />
                     <Route

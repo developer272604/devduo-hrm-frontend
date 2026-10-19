@@ -5,6 +5,7 @@ import { ThemeToggle } from '../lib/theme';
 import { Brand } from '../components/Layout';
 import { Button, Input, FormError } from '../components/ui';
 import { useAuth } from '../lib/auth';
+import { PlanCards } from '../components/PlanCards';
 
 const perks = [
   'Full access to every HRMS module for 24 hours',
@@ -91,6 +92,8 @@ export function RegisterPage() {
               <ArrowRight size={17} />
             </Button>
           </form>
+          <h3 className="mb-3 mt-10 text-sm">Plans after your trial</h3>
+          <PlanCards className="min-[769px]:grid-cols-1" />
           <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
             Already have a workspace?{' '}
             <Link to="/login" className="text-brand-700 dark:text-brand-300">

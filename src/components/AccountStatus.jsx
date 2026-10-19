@@ -3,6 +3,7 @@ import { Clock, Lock } from 'lucide-react';
 import { Button } from './ui';
 import { useAuth } from '../lib/auth';
 import { ThemeToggle } from '../lib/theme';
+import { PlanCards } from './PlanCards';
 
 function remaining(endsAt, now) {
   const ms = Math.max(0, new Date(endsAt).getTime() - now);
@@ -48,16 +49,18 @@ export function AccountLocked() {
   const key = a.status === 'suspended' && a.reason === 'trial_expired' ? 'trial_expired' : a.status === 'suspended' ? 'default' : a.status;
   const [title, text] = copy[key] || copy.default;
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-white px-6 dark:bg-slate-900">
+    <div className="relative flex min-h-screen items-center justify-center bg-white px-6 py-10 dark:bg-slate-900">
       <div className="absolute right-5 top-5">
         <ThemeToggle />
       </div>
-      <div className="max-w-md text-center">
+      <div className="max-w-3xl text-center">
         <Lock size={32} className="mx-auto mb-4 text-brand-500" />
         <h1 className="mb-3 text-2xl font-semibold text-brand-900 dark:text-brand-100">{title}</h1>
         <p className="mb-2 text-sm text-slate-600 dark:text-slate-300">{text}</p>
         {a.note && <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">Note from the owner: {a.note}</p>}
         <p className="mb-6 text-xs text-slate-500 dark:text-slate-400">Workspace: {session.tenant.name} · {session.user.email}</p>
+        <h2 className="mb-3 mt-8 text-base">Plans (per month)</h2>
+        <PlanCards className="mb-8" />
         <div className="flex justify-center gap-3">
           <Button
             loading={busy}

@@ -4,6 +4,8 @@ import { Building2, Clock, CheckCircle2, Hourglass, PauseCircle, Users } from 'l
 import { api, query } from '../../lib/api';
 import { useResource, useDebounced } from '../../lib/hooks';
 import { useAuth } from '../../lib/auth';
+import { Link as RouterLink } from 'react-router-dom';
+import { money } from '../../components/PlanCards';
 import { Badge, Button, Card, DataTable, ErrorState, FilterBar, Input, Modal, PageHeader, Pagination, Resource, Search, StatCard, Tabs, Textarea, useToast } from '../../components/ui';
 
 const date = (v) => (v ? new Date(v).toLocaleString() : '—');
@@ -24,12 +26,26 @@ const actionsFor = (c) =>
 const verbs = { approve: 'Approve', reject: 'Reject', suspend: 'Suspend', activate: 'Activate', deactivate: 'Deactivate' };
 
 function ActionDialog({ company, action, onClose, onDone }) {
+  const plans = useResource(['approve', 'activate'].includes(action) ? '/owner/plans' : null);
   const [note, setNote] = useState(''),
+    [plan, setPlan] = useState(company.plan),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(null),
     toast = useToast();
   return (
     <Modal open onClose={onClose} title={`${verbs[action]} ${company.name}?`}>
+      {plans.data && (
+        <div className="mb-5">
+          <label htmlFor="approve-plan" className="mb-2 block text-sm font-semibold">Plan to sell</label>
+          <select id="approve-plan" className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-900" value={plan} onChange={(e) => setPlan(e.target.value)}>
+            {!plans.data.plans.some((p) => p.code === plan) && <option value={plan}>{plan} (no features change)</option>}
+            {plans.data.plans.map((p) => (
+              <option key={p.code} value={p.code}>{p.name} · {money(p.monthly_price, p.currency)}/month</option>
+            ))}
+          </select>
+          <small className="mt-1 block">Only this plan's features are switched on for the company.</small>
+        </div>
+      )}
       <Textarea label="Note (optional, shown to the company)" value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} />
       {error && <p className="mb-3 text-xs text-rose-700 dark:text-rose-300">{error.message}</p>}
       <div className="mt-4 flex justify-end gap-2.5">
@@ -42,7 +58,7 @@ function ActionDialog({ company, action, onClose, onDone }) {
           onClick={async () => {
             setBusy(true);
             try {
-              await api(`/owner/companies/${company.id}/${action}`, { method: 'POST', body: { note: note || null } });
+              await api(`/owner/companies/${company.id}/${action}`, { method: 'POST', body: { note: note || null, ...(plans.data && plan ? { plan } : {}) } });
               toast(`${company.name}: ${verbs[action].toLowerCase()} done.`);
               onDone();
             } catch (e) {
@@ -83,7 +99,7 @@ export function OwnerPanelPage() {
   };
   return (
     <OwnerOnly>
-      <PageHeader eyebrow="HRMS OWNER" title="Owner panel" description="Every company on the platform: trials, approvals, subscriptions and access." />
+      <PageHeader eyebrow="HRMS OWNER" title="Owner panel" description="Every company on the platform: trials, approvals, subscriptions and access." action={<RouterLink to="/owner/plans" className="inline-flex min-h-10 items-center rounded-lg border border-brand-300 px-4 text-sm font-semibold text-brand-700 dark:text-brand-300">Plans &amp; pricing</RouterLink>} />
       <Resource resource={overview}>
         {(o) => (
           <>
@@ -174,6 +190,7 @@ export function OwnerCompanyPage() {
     navigate = useNavigate(),
     toast = useToast();
   const res = useResource(`/owner/companies/${id}`);
+  const plansRes = useResource('/owner/plans');
   const [dialog, setDialog] = useState(null),
     [hours, setHours] = useState(24),
     [sub, setSub] = useState(null),
@@ -227,7 +244,14 @@ export function OwnerCompanyPage() {
                 </Card>
                 <Card title="Subscription and access">
                   <div className="px-6 pb-6">
-                    <Input label="Plan" value={s.plan} onChange={(e) => setSub({ ...s, plan: e.target.value })} />
+                    <label htmlFor="company-plan" className="mb-2 block text-sm font-semibold">Plan</label>
+                    <select id="company-plan" className="mb-2 w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm dark:border-slate-700 dark:bg-slate-900" value={s.plan} onChange={(e) => setSub({ ...s, plan: e.target.value, modules: (plansRes.data?.plans.find((p) => p.code === e.target.value)?.modules) ?? s.modules })}>
+                      {!plansRes.data?.plans.some((p) => p.code === s.plan) && <option value={s.plan}>{s.plan}</option>}
+                      {plansRes.data?.plans.map((p) => (
+                        <option key={p.code} value={p.code}>{p.name} · {money(p.monthly_price, p.currency)}/month</option>
+                      ))}
+                    </select>
+                    <small className="mb-5 block">Picking a plan selects its features below. You can still adjust them for this company.</small>
                     <Input label="Subscription ends" type="date" value={s.subscription_ends_at} onChange={(e) => setSub({ ...s, subscription_ends_at: e.target.value })} />
                     <span className="mb-2 block text-xs font-semibold text-slate-600 dark:text-slate-300">Modules this company can use</span>
                     <div className="mb-5 flex flex-wrap gap-2">
