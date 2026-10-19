@@ -50,6 +50,8 @@ export async function api(path, { method = 'GET', body, signal, headers: extraHe
     );
   if (!response.ok) {
     if (response.status === 419) csrfToken = undefined;
+    if (response.status === 403 && String(data?.code || '').startsWith('account_'))
+      window.dispatchEvent(new CustomEvent('account-locked'));
     if (sessionEvents && [401, 419].includes(response.status) && path !== '/me')
       window.dispatchEvent(new CustomEvent('session-expired'));
     throw new ApiError(
@@ -60,7 +62,7 @@ export async function api(path, { method = 'GET', body, signal, headers: extraHe
     );
   }
   // Laravel rotates the CSRF token when a session is regenerated.
-  if (['/login', '/login/mfa', '/logout', '/change-password', '/reset-password'].includes(path))
+  if (['/login', '/register', '/login/mfa', '/logout', '/change-password', '/reset-password'].includes(path))
     csrfToken = undefined;
   return data;
 }

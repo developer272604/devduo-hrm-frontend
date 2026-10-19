@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ThemeToggle } from '../lib/theme';
+import { TrialBanner } from './AccountStatus';
 import { NavLink, Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -199,6 +200,7 @@ export default function Layout() {
     ...enterpriseNavItems,
   ];
   const admin = [
+    { to: '/owner', label: 'Owner panel', icon: ShieldCheck, ownerOnly: true },
     { to: '/users', label: 'People & access', icon: Users, permission: 'users.view' },
     { to: '/roles', label: 'Roles & permissions', icon: ShieldCheck, permission: 'roles.manage' },
     {
@@ -234,7 +236,9 @@ export default function Layout() {
   useEffect(() => {
     if (activeGroupId && openMap[activeGroupId] === false) setOpenMap((m) => ({ ...m, [activeGroupId]: true }));
   }, [activeGroupId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const isOwner = Boolean(session.account?.is_owner);
   const item = (x) =>
+    (!x.ownerOnly || isOwner) &&
     can(x.permission) &&
     enabled(x.module) && (
       <NavLink
@@ -317,7 +321,7 @@ export default function Layout() {
           </div>
         );
       })}
-      {admin.some((x) => can(x.permission)) && (
+      {admin.some((x) => (!x.ownerOnly || isOwner) && can(x.permission)) && (
         <>
           <div className="mb-3 mt-1 px-3 text-[9px] font-semibold tracking-widest text-slate-400 dark:text-slate-400 group-data-[collapsed=true]/shell:hidden">
             ADMINISTRATION
@@ -367,6 +371,7 @@ export default function Layout() {
         </div>
       </Drawer>
       <div className="flex min-h-screen w-full min-w-0 flex-col min-[769px]:ml-60 min-[769px]:w-[calc(100%_-_15rem)] group-data-[collapsed=true]/shell:min-[769px]:ml-20 group-data-[collapsed=true]/shell:min-[769px]:w-[calc(100%_-_5rem)]">
+        <TrialBanner />
         <header className="flex h-20 shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-9 max-[769px]:h-16 max-[769px]:px-4">
           <div className="flex items-center gap-2.5">
             <Button

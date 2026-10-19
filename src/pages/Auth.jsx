@@ -251,7 +251,10 @@ export function AuthPage({ mode = 'login' }) {
             <span>Your workspace. Secure by design.</span>
           </div>
           <p className="mb-0! border-t border-slate-100 dark:border-slate-800 pt-6 text-center text-xs!">
-            Need access? Contact your workspace administrator.
+            New here?{' '}
+            <Link to="/register" className="font-semibold text-brand-700 dark:text-brand-300">
+              Start your 24-hour free trial
+            </Link>
           </p>
         </div>
         <div className="text-center text-[10px] text-slate-400 dark:text-slate-400">

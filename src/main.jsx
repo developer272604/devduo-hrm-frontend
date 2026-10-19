@@ -13,6 +13,9 @@ import {
 import { AuthProvider, useAuth } from './lib/auth';
 import { ToastProvider, Skeleton, ErrorState, EmptyState, Button } from './components/ui';
 import Layout from './components/Layout';
+import { RegisterPage } from './pages/Register';
+import { AccountLocked } from './components/AccountStatus';
+import { OwnerPanelPage, OwnerCompanyPage } from './pages/owner/OwnerPages';
 import { AuthPage, SecurityPage } from './pages/Auth';
 import Dashboard from './pages/Dashboard';
 import Organization from './pages/Organization';
@@ -47,6 +50,7 @@ function Protected() {
     );
   if (error) return <ErrorState error={error} onRetry={refresh} />;
   if (!session) return <Navigate to="/login" state={{ from: location.pathname }} replace />;
+  if (session.account && !session.account.access && !session.account.is_owner) return <AccountLocked />;
   return <Outlet />;
 }
 function Access({ permission, module, children }) {
@@ -90,6 +94,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/careers/:workspace" element={<CareersPage />} />
                 <Route path="/careers/:workspace/portal" element={<CandidatePortalPage />} />
                 <Route path="/login" element={<AuthPage />} />
+                <Route path="/register" element={<RegisterPage />} />
                 <Route path="/forgot-password" element={<AuthPage mode="forgot" />} />
                 <Route path="/reset-password" element={<AuthPage mode="reset" />} />
                 <Route
@@ -157,6 +162,8 @@ createRoot(document.getElementById('root')).render(
                         </Access>
                       }
                     />
+                    <Route path="owner" element={<OwnerPanelPage />} />
+                    <Route path="owner/companies/:id" element={<OwnerCompanyPage />} />
                     <Route path="permissions" element={<Navigate to="/roles" replace />} />
                     <Route
                       path="notifications"
