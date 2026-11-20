@@ -66,10 +66,10 @@ export function Brand() {
       aria-label="Devduo home"
     >
       <img src="/devduo-logo.png" alt="" />
-      <span className="min-w-0 wrap-anywhere">
+      <span className="devduo-wordmark min-w-0 wrap-anywhere">
         {session?.tenant.settings?.brand_name || 'devduo'}
         <span className="text-brand-700 dark:text-brand-300">.</span>
-        <small>PEOPLE WORKSPACE</small>
+        <small>People workspace</small>
       </span>
     </Link>
   );
@@ -274,7 +274,7 @@ export default function Layout() {
         onClick={() => setMobile(false)}
       >
         <x.icon size={19} />
-        <span>{x.label}</span>
+        <span className="workspace-nav-label">{x.label}</span>
       </Link>
     );
   const orgBlock = (
@@ -335,7 +335,7 @@ export default function Layout() {
               aria-controls={`nav-group-${isMobile ? 'mobile' : 'desktop'}-${g.id}`}
               onClick={() => toggleGroup(g.id)}
             >
-              <span>{g.label.toUpperCase()}</span>
+              <span className="workspace-group-label">{g.label.toUpperCase()}</span>
               <ChevronDown size={13} className={`transition-transform ${open ? '' : '-rotate-90'}`} />
             </button>
             {open && (
@@ -388,7 +388,7 @@ export default function Layout() {
         </Button>
       </aside>
       <Drawer open={mobile} onClose={() => setMobile(false)} title="Your workspace">
-        <div className="flex flex-col [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300">
+        <div className="workspace-mobile-nav flex flex-col [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300">
           {navigation(true)}
         </div>
       </Drawer>

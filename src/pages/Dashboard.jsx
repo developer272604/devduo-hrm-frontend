@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
 import { useResource } from '../lib/hooks';
-import { Card, PageHeader, Resource, StatCard, Badge, EmptyState } from '../components/ui';
+import { Card, Resource, Badge, EmptyState } from '../components/ui';
 
 const actionStyle =
   'inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-brand-600';
@@ -57,22 +57,21 @@ export default function Dashboard() {
 
   return (
     <>
-      <div className="dashboard-intro">
-        <PageHeader
-          eyebrow={date}
-          title={`Hello, ${session.user.name.split(' ')[0]}.`}
-          description={session.tenant.name}
-          action={
-            can('work.manage') &&
-            enabled('work') && (
-              <Link to="/my-work?new=1" className={actionStyle}>
-                <Plus size={17} />
-                Create task
-              </Link>
-            )
-          }
-        />
-      </div>
+      <header className="dashboard-hero">
+        <div className="dashboard-greeting">
+          <p className="dashboard-date">
+            <CalendarDays size={16} aria-hidden="true" />
+            {date}
+          </p>
+          <h1>Hello, {session.user.name.split(' ')[0]}.</h1>
+          <p className="dashboard-tenant">{session.tenant.name}</p>
+        </div>
+        {can('work.manage') && enabled('work') && (
+          <Link to="/my-work?new=1" className={actionStyle}>
+            <Plus size={17} aria-hidden="true" /> Create task
+          </Link>
+        )}
+      </header>
       <Resource resource={resource}>
         {(data) => {
           const stats = [
@@ -119,113 +118,114 @@ export default function Dashboard() {
               ))}
               {stats.length > 0 && (
                 <section aria-label="Workspace summary" className="dashboard-metrics">
-                  {stats.map(([, label, value, detail, icon]) => (
-                    <StatCard key={label} label={label} value={value} detail={detail} icon={icon} />
+                  {stats.map(([, label, value, detail, Icon]) => (
+                    <div className="dashboard-metric" key={label}>
+                      <span className="ui-stat-icon">
+                        <Icon size={19} aria-hidden="true" />
+                      </span>
+                      <div className="min-w-0">
+                        <h2>{label}</h2>
+                        <strong>{value ?? '—'}</strong>
+                        <small>{detail}</small>
+                      </div>
+                    </div>
                   ))}
                 </section>
               )}
-              <div className="dashboard-columns">
-                <div className="grid min-w-0 content-start gap-5">
-                  {showWork && (
-                    <Card
-                      title="My Work"
-                      action={
-                        <Link
-                          className="inline-flex items-center gap-2 text-xs font-semibold text-brand-700 hover:underline dark:text-brand-300"
-                          to="/my-work"
-                        >
-                          View all <ArrowRight size={15} />
+              <section className="dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title">
+                <h2 id="dashboard-shortcuts-title">Quick actions</h2>
+                <ul>
+                  {shortcuts
+                    .filter(([visible]) => visible)
+                    .map(([, to, label, Icon]) => (
+                      <li key={to}>
+                        <Link to={to}>
+                          <span className="ui-stat-icon">
+                            <Icon size={17} aria-hidden="true" />
+                          </span>
+                          <span>{label}</span>
+                          <ArrowUpRight
+                            size={14}
+                            aria-hidden="true"
+                            className="ml-auto text-slate-400"
+                          />
                         </Link>
-                      }
-                    >
-                      {data.my_work.length ? (
-                        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                          {data.my_work.map((task) => (
-                            <li key={task.id}>
-                              <Link
-                                to="/my-work"
-                                className="flex items-center gap-3 px-4 py-3 hover:bg-brand-50 dark:hover:bg-brand-950"
+                      </li>
+                    ))}
+                </ul>
+              </section>
+              <div className={showWork ? 'dashboard-columns' : 'grid gap-5'}>
+                {showWork && (
+                  <Card
+                    title="My Work"
+                    action={
+                      <Link
+                        className="inline-flex items-center gap-2 text-xs font-semibold text-brand-700 hover:underline dark:text-brand-300"
+                        to="/my-work"
+                      >
+                        View all <ArrowRight size={15} />
+                      </Link>
+                    }
+                  >
+                    {data.my_work.length ? (
+                      <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {data.my_work.map((task) => (
+                          <li key={task.id}>
+                            <Link
+                              to="/my-work"
+                              className="dashboard-task flex items-center gap-3 px-4 py-3 hover:bg-brand-50 dark:hover:bg-brand-950"
+                            >
+                              <span className="ui-stat-icon">
+                                <CheckSquare size={17} />
+                              </span>
+                              <span className="min-w-0 flex-1 wrap-anywhere">
+                                <strong className="block text-xs">{task.title}</strong>
+                                <small>
+                                  {task.source_module}
+                                  {task.due_date && ` · Due ${task.due_date}`}
+                                </small>
+                              </span>
+                              <Badge
+                                tone={
+                                  ['high', 'urgent'].includes(task.priority) ? 'amber' : 'neutral'
+                                }
                               >
-                                <span className="ui-stat-icon">
-                                  <CheckSquare size={17} />
-                                </span>
-                                <span className="min-w-0 flex-1 wrap-anywhere">
-                                  <strong className="block text-xs">{task.title}</strong>
-                                  <small>
-                                    {task.source_module}
-                                    {task.due_date && ` · Due ${task.due_date}`}
-                                  </small>
-                                </span>
-                                <Badge
-                                  tone={
-                                    ['high', 'urgent'].includes(task.priority) ? 'amber' : 'neutral'
-                                  }
-                                >
-                                  {task.priority}
-                                </Badge>
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : (
-                        <EmptyState
-                          title="You’re all caught up"
-                          description="Your assigned work will appear here."
-                        />
-                      )}
-                    </Card>
-                  )}
-                  <Card title="Announcements">
-                    {data.announcements.length ? (
-                      <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {data.announcements.map((announcement) => (
-                          <article key={announcement.id} className="flex gap-3 px-4 py-3">
-                            <span className="ui-stat-icon">
-                              <Bell size={17} />
-                            </span>
-                            <div className="min-w-0 wrap-anywhere">
-                              <h3>{announcement.title}</h3>
-                              <p className="my-1 whitespace-pre-wrap text-xs">
-                                {announcement.body}
-                              </p>
-                              <small>
-                                {new Date(announcement.created_at).toLocaleDateString()}
-                              </small>
-                            </div>
-                          </article>
+                                {task.priority}
+                              </Badge>
+                            </Link>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     ) : (
                       <EmptyState
-                        title="No announcements yet"
-                        description="Company news will appear here."
+                        title="You’re all caught up"
+                        description="Your assigned work will appear here."
                       />
                     )}
                   </Card>
-                </div>
-                <Card title="Quick actions">
-                  <ul className="px-3 pb-3">
-                    {shortcuts
-                      .filter(([visible]) => visible)
-                      .map(([, to, label, Icon]) => (
-                        <li key={to}>
-                          <Link
-                            to={to}
-                            className="flex items-center gap-3 rounded-lg px-2 py-2 text-xs font-medium hover:bg-brand-50 dark:hover:bg-brand-950"
-                          >
-                            <span className="ui-stat-icon">
-                              <Icon size={17} aria-hidden="true" />
-                            </span>
-                            <span>{label}</span>
-                            <ArrowUpRight
-                              size={15}
-                              aria-hidden="true"
-                              className="ml-auto text-slate-400"
-                            />
-                          </Link>
-                        </li>
+                )}
+                <Card title="Announcements">
+                  {data.announcements.length ? (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {data.announcements.map((announcement) => (
+                        <article key={announcement.id} className="flex gap-3 px-4 py-4">
+                          <span className="ui-stat-icon">
+                            <Bell size={17} />
+                          </span>
+                          <div className="min-w-0 wrap-anywhere">
+                            <h3>{announcement.title}</h3>
+                            <p className="my-1 whitespace-pre-wrap text-xs">{announcement.body}</p>
+                            <small>{new Date(announcement.created_at).toLocaleDateString()}</small>
+                          </div>
+                        </article>
                       ))}
-                  </ul>
+                    </div>
+                  ) : (
+                    <EmptyState
+                      title="No announcements yet"
+                      description="Company news will appear here."
+                    />
+                  )}
                 </Card>
               </div>
             </div>
