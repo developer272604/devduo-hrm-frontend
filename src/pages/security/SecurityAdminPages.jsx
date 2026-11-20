@@ -84,7 +84,7 @@ export function SecuritySettingsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PHASE 15 · SECURITY & COMPLIANCE"
+        eyebrow="SECURITY & COMPLIANCE"
         title="Security settings"
         description="Multi-factor enforcement, session limits and password policy for this workspace. Every change is audited."
       />
@@ -213,7 +213,7 @@ export function AuditReviewPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PHASE 15 · SECURITY & COMPLIANCE"
+        eyebrow="SECURITY & COMPLIANCE"
         title="Audit review"
         description="Search the tamper-evident audit trail. Exports require a stated purpose and are themselves audited."
       />
@@ -340,7 +340,7 @@ export function LegalHoldPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PHASE 15 · SECURITY & COMPLIANCE"
+        eyebrow="SECURITY & COMPLIANCE"
         title="Legal holds and retention"
         description="Holds suspend automated purging in the covered modules. The retention registry documents intent; it is not legal advice."
       />

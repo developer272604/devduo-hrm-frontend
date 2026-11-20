@@ -21,12 +21,11 @@ test('existing insight and employee links reach live People screens', async ({ p
   await expect(page.getByRole('heading', { name: 'Identity & position' })).toBeVisible();
   await page.getByRole('tab', { name: 'Timeline', exact: true }).click();
   await expect(page.getByText(/Joined the company on/)).toBeVisible();
-  await page.getByRole('tab', { name: 'Organization memory' }).click();
   await expect(page.getByLabel('Organization as of')).toBeVisible();
   await page.goto('/employees?insight=people.without_manager');
   await expect(page).toHaveURL('/people?insight=people.without_manager');
   await expect(page.getByRole('heading', { name: 'Employees needing attention' })).toBeVisible();
-  await expect(page.getByRole('table', { name: 'Records' })).toContainText('Workspace Admin');
+  await expect(page.getByRole('table', { name: 'Employees needing attention' })).toContainText('Workspace Admin');
 });
 
 test('People operations and attendance load from the real API', async ({ page }) => {
@@ -46,7 +45,9 @@ test('People mobile view has no overflow or inline styling in dark mode', async 
   await login(page);
   await page.setViewportSize({width:390,height:844});
   await page.goto('/people');
-  await expect(page.getByRole('list', {name:'Records'})).toContainText('Workspace Admin');
+  await page.getByRole('button', { name: 'Switch to dark mode' }).click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+  await expect(page.getByRole('list', { name: 'Employees', exact: true })).toContainText('Workspace Admin');
   const width = await page.evaluate(() => ({scroll:document.documentElement.scrollWidth,width:innerWidth,inline:document.querySelectorAll('[style]').length}));
   expect(width.scroll).toBeLessThanOrEqual(width.width);
   expect(width.inline).toBe(0);

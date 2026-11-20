@@ -37,15 +37,15 @@ export function RegisterPage() {
   }
   const fieldError = (key) => error?.errors?.[key]?.[0];
   return (
-    <div className="relative min-h-screen bg-white dark:bg-slate-900">
+    <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-950">
       <div className="absolute right-5 top-5 z-20">
         <ThemeToggle />
       </div>
-      <main className="mx-auto flex min-h-screen w-full max-w-md flex-col px-6 pb-6 pt-10">
-        <div className="mx-auto">
+      <main className="mx-auto flex min-h-dvh w-full max-w-lg flex-col gap-5 px-4 pb-6 pt-8 sm:px-6">
+        <div className="mr-auto">
           <Brand />
         </div>
-        <div className="m-auto w-full py-10">
+        <div className="m-auto w-full rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900 sm:p-7">
           <span className="mb-2.5 block text-[10px] font-semibold tracking-widest text-slate-500 dark:text-slate-400">
             24-HOUR FREE TRIAL
           </span>
@@ -79,7 +79,7 @@ export function RegisterPage() {
               />
               <button
                 type="button"
-                className="absolute right-2 top-8 flex p-1 text-slate-400 hover:text-brand-700 dark:hover:text-brand-300"
+                className="absolute right-2 top-7 flex p-1 text-slate-400 hover:text-brand-700 dark:hover:text-brand-300"
                 aria-label={show ? 'Hide password' : 'Show password'}
                 onClick={() => setShow(!show)}
               >

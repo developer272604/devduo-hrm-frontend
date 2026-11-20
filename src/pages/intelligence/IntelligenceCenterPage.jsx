@@ -381,7 +381,7 @@ function RiskTab({ canSettings }) {
           {!d.enabled ? (
             <EmptyState title="Risk signals are off" description={d.message} />
           ) : d.cohorts.length ? (
-            <div className="overflow-x-auto">
+            <div className="ui-table overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr>
@@ -432,7 +432,7 @@ export function IntelligenceCenterPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PHASE 16 · HRMS INTELLIGENCE"
+        eyebrow="HRMS INTELLIGENCE"
         title="Intelligence Center"
         description="Deterministic, explainable findings limited to your permissions and data scope. No AI model is used."
       />

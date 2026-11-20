@@ -26,8 +26,7 @@ const badgeTones = {
     'border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300',
   green:
     'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300',
-  red:
-    'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
+  red: 'border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300',
   amber:
     'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 text-amber-800 dark:text-amber-200',
 };
@@ -42,9 +41,10 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant] || buttonVariants.primary}  ${className}`}
+      className={`ui-button inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant] || buttonVariants.primary}  ${className}`}
       {...props}
       disabled={props.disabled || loading}
+      aria-busy={loading || undefined}
     >
       {loading ? (
         <LoaderCircle size={16} className="animate-spin motion-reduce:animate-none" />
@@ -55,12 +55,16 @@ export function Button({
 }
 export function Field({ label, error, hint, children, htmlFor }) {
   return (
-    <div className="mb-5 min-w-0 [&>label]:mb-2 [&>label]:block [&>label]:text-xs [&>label]:font-semibold [&>label]:text-slate-600 dark:[&>label]:text-slate-300 [&>small]:mt-1 [&>small]:block">
+    <div className="ui-field mb-5 min-w-0 [&>label]:mb-2 [&>label]:block [&>label]:text-xs [&>label]:font-semibold [&>label]:text-slate-600 dark:[&>label]:text-slate-300 [&>small]:mt-1 [&>small]:block">
       <label htmlFor={htmlFor}>{label}</label>
       {children}
-      {hint && <small>{hint}</small>}
+      {hint && <small id={htmlFor ? htmlFor + '-hint' : undefined}>{hint}</small>}
       {error && (
-        <small className="text-xs text-rose-700 dark:text-rose-300" role="alert">
+        <small
+          id={htmlFor ? htmlFor + '-error' : undefined}
+          className="text-xs text-rose-700 dark:text-rose-300"
+          role="alert"
+        >
           {error}
         </small>
       )}
@@ -76,18 +80,26 @@ export function Input({ label, error, hint, id, ...props }) {
         className="w-full min-h-11 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400 focus:border-brand-400 focus:outline-2 focus:outline-brand-100"
         id={key}
         aria-invalid={!!error}
+        aria-describedby={
+          [hint && key + '-hint', error && key + '-error'].filter(Boolean).join(' ') || undefined
+        }
         {...props}
       />
     </Field>
   );
 }
-export function Textarea({ label, error, ...props }) {
-  const id = useId();
+export function Textarea({ label, error, hint, id: suppliedId, ...props }) {
+  const generated = useId();
+  const id = suppliedId || generated;
   return (
-    <Field label={label} error={error} htmlFor={id}>
+    <Field label={label} error={error} hint={hint} htmlFor={id}>
       <textarea
         className="w-full min-h-11 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400 focus:border-brand-400 focus:outline-2 focus:outline-brand-100 min-h-24 resize-y"
         id={id}
+        aria-invalid={!!error}
+        aria-describedby={
+          [hint && id + '-hint', error && id + '-error'].filter(Boolean).join(' ') || undefined
+        }
         rows={3}
         {...props}
       />
@@ -188,16 +200,17 @@ export const Avatar = ({ name = '', size = 'normal' }) => (
 );
 export const Tooltip = ({ label, children }) => (
   <span
-    className="relative inline-flex [&>[role=tooltip]]:absolute [&>[role=tooltip]]:bottom-full [&>[role=tooltip]]:left-1/2 [&>[role=tooltip]]:z-50 [&>[role=tooltip]]:mb-2 [&>[role=tooltip]]:hidden [&>[role=tooltip]]:-translate-x-1/2 [&>[role=tooltip]]:whitespace-nowrap [&>[role=tooltip]]:rounded [&>[role=tooltip]]:bg-slate-800 [&>[role=tooltip]]:px-3 [&>[role=tooltip]]:py-2 [&>[role=tooltip]]:text-xs [&>[role=tooltip]]:text-white hover:[&>[role=tooltip]]:block focus:[&>[role=tooltip]]:block"
+    className="relative inline-flex [&>[role=tooltip]]:absolute [&>[role=tooltip]]:bottom-full [&>[role=tooltip]]:left-1/2 [&>[role=tooltip]]:z-50 [&>[role=tooltip]]:mb-2 [&>[role=tooltip]]:hidden [&>[role=tooltip]]:-translate-x-1/2 [&>[role=tooltip]]:whitespace-nowrap [&>[role=tooltip]]:rounded [&>[role=tooltip]]:bg-slate-800 [&>[role=tooltip]]:px-3 [&>[role=tooltip]]:py-2 [&>[role=tooltip]]:text-xs [&>[role=tooltip]]:text-white hover:[&>[role=tooltip]]:block focus-within:[&>[role=tooltip]]:block"
     tabIndex={0}
   >
     {children}
     <span role="tooltip">{label}</span>
   </span>
 );
-export function Popover({ trigger, children }) {
+export function Popover({ trigger, children, label }) {
   const [open, set] = useState(false),
     ref = useRef();
+  const triggerRef = useRef();
   useEffect(() => {
     const close = (e) => {
       if (!ref.current?.contains(e.target)) set(false);
@@ -210,12 +223,18 @@ export function Popover({ trigger, children }) {
       className="relative"
       ref={ref}
       onKeyDown={(e) => {
-        if (e.key === 'Escape') set(false);
+        if (e.key === 'Escape' && open) {
+          e.stopPropagation();
+          set(false);
+          triggerRef.current?.focus();
+        }
       }}
     >
       <button
         type="button"
-        className="flex items-center gap-2.5 p-0"
+        className="flex items-center gap-2 rounded-lg p-1"
+        ref={triggerRef}
+        aria-label={label}
         aria-expanded={open}
         onClick={() => set(!open)}
       >
@@ -223,7 +242,7 @@ export function Popover({ trigger, children }) {
       </button>
       {open && (
         <div
-          className="absolute right-0 top-full z-50 mt-4 min-w-64 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 shadow-xl [&>a]:flex [&>a]:items-center [&>a]:gap-2 [&>a]:rounded [&>a]:p-3 [&>a]:text-xs [&>a]:hover:bg-brand-50 dark:[&>a]:hover:bg-brand-950 [&>button]:flex [&>button]:w-full [&>button]:items-center [&>button]:gap-2 [&>button]:rounded [&>button]:p-3 [&>button]:text-xs [&>button]:hover:bg-brand-50 dark:[&>button]:hover:bg-brand-950"
+          className="ui-popover absolute right-0 top-full z-55 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-2 shadow-lg [&>a]:flex [&>a]:items-center [&>a]:gap-2 [&>a]:rounded [&>a]:p-3 [&>a]:text-xs [&>a]:hover:bg-brand-50 dark:[&>a]:hover:bg-brand-950 [&>button]:flex [&>button]:w-full [&>button]:items-center [&>button]:gap-2 [&>button]:rounded [&>button]:p-3 [&>button]:text-xs [&>button]:hover:bg-brand-50 dark:[&>button]:hover:bg-brand-950"
           onClick={() => set(false)}
         >
           {children}
@@ -244,7 +263,7 @@ export function Modal({ open, onClose, title, children, drawer = false }) {
     const wasLocked = document.body.classList.contains('overflow-hidden');
     document.body.classList.add('overflow-hidden');
     const el = ref.current;
-    el?.focus();
+    (el?.querySelector('[data-initial-focus]') || el)?.focus();
     const key = (e) => {
       if (e.key === 'Escape') {
         // Let an open dropdown consume Escape before closing its parent dialog.
@@ -289,14 +308,14 @@ export function Modal({ open, onClose, title, children, drawer = false }) {
       }}
     >
       <section
-        className={`w-full overflow-y-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl outline-none ${drawer ? 'h-dvh max-h-dvh max-w-80 rounded-none p-5' : 'max-h-[90dvh] max-w-xl rounded-xl p-6'}`}
+        className={`ui-dialog w-full overflow-y-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg outline-none ${drawer ? 'h-dvh max-h-dvh max-w-80 rounded-none p-5' : 'max-h-[90dvh] max-w-xl rounded-2xl p-4 sm:p-6'}`}
         ref={ref}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <div className="mb-6 flex items-center justify-between gap-3 [&>h2]:m-0 [&>h2]:text-lg">
+        <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-200 pb-3 dark:border-slate-700 [&>h2]:m-0 [&>h2]:text-lg">
           <h2 id={titleId}>{title}</h2>
           <Button variant="ghost" aria-label="Close dialog" onClick={onClose}>
             <X size={19} />
@@ -319,7 +338,7 @@ export function ConfirmationDialog({
   return (
     <Modal open={open} onClose={onClose} title={title}>
       <p>This action cannot be undone. Check that this record is no longer needed.</p>
-      <div className="flex items-center gap-2.5 mt-6 justify-end">
+      <div className="mt-6 flex flex-wrap items-center justify-end gap-2.5">
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>
@@ -334,7 +353,7 @@ export function Tabs({ items, value, onChange }) {
   const ref = useRef();
   return (
     <div
-      className="flex gap-6 overflow-x-auto border-b border-slate-200 dark:border-slate-700 px-5 [&>button]:whitespace-nowrap [&>button]:border-b-2 [&>button]:border-transparent [&>button]:px-1 [&>button]:py-4 [&>button]:text-xs [&>button]:text-slate-500 dark:[&>button]:text-slate-400 [&>button[aria-selected=true]]:border-brand-700 [&>button[aria-selected=true]]:font-semibold [&>button[aria-selected=true]]:text-brand-700 dark:[&>button[aria-selected=true]]:text-brand-300"
+      className="ui-tabs flex gap-4 overflow-x-auto border-b border-slate-200 dark:border-slate-700 px-5 [&>button]:whitespace-nowrap [&>button]:border-b-2 [&>button]:border-transparent [&>button]:px-1 [&>button]:py-4 [&>button]:text-xs [&>button]:text-slate-500 dark:[&>button]:text-slate-400 [&>button[aria-selected=true]]:border-brand-700 [&>button[aria-selected=true]]:font-semibold [&>button[aria-selected=true]]:text-brand-700 dark:[&>button[aria-selected=true]]:text-brand-300"
       role="tablist"
       ref={ref}
     >
@@ -373,14 +392,16 @@ export const Accordion = ({ title, children }) => (
 );
 export const Breadcrumb = ({ items }) => (
   <nav
-    className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-400 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span:last-child]:text-slate-600 dark:[&>span:last-child]:text-slate-300 max-sm:[&>a]:hidden max-sm:[&>span:not(:last-child)]:hidden"
+    className="ui-breadcrumb flex min-w-0 items-center gap-2 text-xs text-slate-400 dark:text-slate-400 [&>span]:flex [&>span]:items-center [&>span]:gap-2 [&>span:last-child]:text-slate-600 dark:[&>span:last-child]:text-slate-300 max-sm:[&>a]:hidden max-sm:[&>span:not(:last-child)]:hidden"
     aria-label="Breadcrumb"
   >
     <Link to="/">Workspace</Link>
     {items.map((x, i) => (
       <span key={i}>
         <ChevronRight size={12} />
-        {x}
+        <span className="truncate" aria-current={i === items.length - 1 ? 'page' : undefined}>
+          {x}
+        </span>
       </span>
     ))}
   </nav>
@@ -388,8 +409,11 @@ export const Breadcrumb = ({ items }) => (
 export function Pagination({ data, onChange }) {
   if (!data || data.last_page <= 1) return null;
   return (
-    <div className="flex items-center justify-between border-t border-slate-200 dark:border-slate-700 px-5 py-4">
-      <small>
+    <nav
+      aria-label="Pagination"
+      className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 px-4 py-3 dark:border-slate-700 sm:px-5"
+    >
+      <small aria-live="polite" className="tabular-nums">
         {data.total} records · Page {data.current_page} of {data.last_page}
       </small>
       <div className="flex items-center gap-2.5">
@@ -410,14 +434,14 @@ export function Pagination({ data, onChange }) {
           <ChevronRight size={16} />
         </Button>
       </div>
-    </div>
+    </nav>
   );
 }
 export const Skeleton = ({ rows = 4 }) => (
-  <div className="p-5" aria-label="Loading" role="status">
+  <div className="grid gap-3 p-5" aria-label="Loading" role="status">
     {Array.from({ length: rows }, (_, i) => (
       <div
-        className="mb-4 h-16 animate-pulse rounded-lg bg-brand-100/70 dark:bg-brand-900/70 even:w-4/5 motion-reduce:animate-none"
+        className="h-9 animate-pulse rounded-lg bg-brand-100/70 dark:bg-brand-900/70 even:w-4/5 motion-reduce:animate-none"
         key={i}
       />
     ))}
@@ -428,8 +452,10 @@ export const EmptyState = ({
   description = 'New records will appear here.',
   action,
 }) => (
-  <div className="px-6 py-10 text-center text-brand-300 [&>svg]:mx-auto [&>svg]:mb-3 [&>h3]:mb-2 [&>h3]:text-sm [&>h3]:text-slate-600 dark:[&>h3]:text-slate-300 [&>p]:mx-auto [&>p]:mb-3 [&>p]:max-w-xs [&>p]:text-xs [&>p]:text-slate-500 dark:[&>p]:text-slate-400">
-    <Inbox size={28} />
+  <div className="px-4 py-8 text-center text-brand-300 [&>svg]:mx-auto [&>svg]:mb-3 [&>h3]:mb-2 [&>h3]:text-sm [&>h3]:text-slate-600 dark:[&>h3]:text-slate-300 [&>p]:mx-auto [&>p]:mb-3 [&>p]:max-w-xs [&>p]:text-xs [&>p]:text-slate-500 dark:[&>p]:text-slate-400">
+    <span className="ui-empty-icon">
+      <Inbox size={22} aria-hidden="true" />
+    </span>
     <h3>{title}</h3>
     <p>{description}</p>
     {action}
@@ -438,7 +464,7 @@ export const EmptyState = ({
 export function ErrorState({ error, onRetry }) {
   return (
     <div
-      className="px-6 py-10 text-center text-rose-500 [&>svg]:mx-auto [&>svg]:mb-3 [&>h3]:mb-2 [&>h3]:text-sm [&>h3]:text-rose-800 dark:[&>h3]:text-rose-200 [&>p]:mx-auto [&>p]:mb-4 [&>p]:max-w-sm [&>p]:text-sm"
+      className="px-4 py-8 text-center text-rose-500 [&>svg]:mx-auto [&>svg]:mb-3 [&>h3]:mb-2 [&>h3]:text-sm [&>h3]:text-rose-800 dark:[&>h3]:text-rose-200 [&>p]:mx-auto [&>p]:mb-4 [&>p]:max-w-sm [&>p]:text-sm"
       role="alert"
     >
       <AlertCircle size={24} />
@@ -460,12 +486,14 @@ export function Resource({ resource, children }) {
 export function DataTable({ columns, rows, empty }) {
   if (!rows?.length) return <EmptyState {...empty} />;
   return (
-    <div className="w-full overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_table]:text-xs [&_th]:whitespace-nowrap [&_th]:border-b [&_th]:border-slate-200 dark:[&_th]:border-slate-700 [&_th]:bg-slate-50 dark:[&_th]:bg-slate-950 [&_th]:px-5 [&_th]:py-3 [&_th]:text-xs [&_th]:font-medium [&_th]:text-slate-500 dark:[&_th]:text-slate-400 [&_td]:max-w-88 [&_td]:border-b [&_td]:border-slate-100 dark:[&_td]:border-slate-800 [&_td]:px-5 [&_td]:py-4 [&_td]:align-middle [&_td]:text-slate-600 dark:[&_td]:text-slate-300 [&_td]:wrap-anywhere [&_tr:last-child_td]:border-b-0 [&_tbody_tr]:hover:bg-brand-50/30 dark:[&_tbody_tr]:hover:bg-brand-950/30 max-[769px]:overflow-visible max-[769px]:[&_table]:block max-[769px]:[&_thead]:hidden max-[769px]:[&_tbody]:block max-[769px]:[&_tr]:block max-[769px]:[&_tr]:border-b max-[769px]:[&_tr]:border-slate-200 dark:max-[769px]:[&_tr]:border-slate-700 max-[769px]:[&_tr]:px-4 max-[769px]:[&_tr]:py-3 max-[769px]:[&_td]:flex max-[769px]:[&_td]:max-w-none max-[769px]:[&_td]:items-center max-[769px]:[&_td]:justify-between max-[769px]:[&_td]:gap-5 max-[769px]:[&_td]:border-0 max-[769px]:[&_td]:px-0 max-[769px]:[&_td]:py-2 max-[769px]:[&_td]:text-right max-[769px]:[&_td]:before:shrink-0 max-[769px]:[&_td]:before:text-left max-[769px]:[&_td]:before:text-xs max-[769px]:[&_td]:before:text-slate-500 dark:max-[769px]:[&_td]:before:text-slate-400 max-[769px]:[&_td]:before:content-[attr(data-label)]">
+    <div className="ui-table w-full overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_table]:text-xs [&_th]:whitespace-nowrap [&_th]:border-b [&_th]:border-slate-200 dark:[&_th]:border-slate-700 [&_th]:bg-slate-50 dark:[&_th]:bg-slate-950 [&_th]:px-5 [&_th]:py-3 [&_th]:text-xs [&_th]:font-medium [&_th]:text-slate-500 dark:[&_th]:text-slate-400 [&_td]:max-w-88 [&_td]:border-b [&_td]:border-slate-100 dark:[&_td]:border-slate-800 [&_td]:px-5 [&_td]:py-4 [&_td]:align-middle [&_td]:text-slate-600 dark:[&_td]:text-slate-300 [&_td]:wrap-anywhere [&_tr:last-child_td]:border-b-0 [&_tbody_tr]:hover:bg-brand-50/30 dark:[&_tbody_tr]:hover:bg-brand-950/30 max-[769px]:overflow-visible max-[769px]:[&_table]:block max-[769px]:[&_thead]:hidden max-[769px]:[&_tbody]:block max-[769px]:[&_tr]:block max-[769px]:[&_tr]:border-b max-[769px]:[&_tr]:border-slate-200 dark:max-[769px]:[&_tr]:border-slate-700 max-[769px]:[&_tr]:px-4 max-[769px]:[&_tr]:py-3 max-[769px]:[&_td]:flex max-[769px]:[&_td]:max-w-none max-[769px]:[&_td]:items-center max-[769px]:[&_td]:justify-between max-[769px]:[&_td]:gap-5 max-[769px]:[&_td]:border-0 max-[769px]:[&_td]:px-0 max-[769px]:[&_td]:py-2 max-[769px]:[&_td]:text-right max-[769px]:[&_td]:before:shrink-0 max-[769px]:[&_td]:before:text-left max-[769px]:[&_td]:before:text-xs max-[769px]:[&_td]:before:text-slate-500 dark:max-[769px]:[&_td]:before:text-slate-400 max-[769px]:[&_td]:before:content-[attr(data-label)]">
       <table>
         <thead>
           <tr>
             {columns.map((c) => (
-              <th key={c.key}>{c.label}</th>
+              <th key={c.key} scope="col">
+                {c.label}
+              </th>
             ))}
           </tr>
         </thead>
@@ -485,15 +513,16 @@ export function DataTable({ columns, rows, empty }) {
   );
 }
 export const FilterBar = ({ children }) => (
-  <div className="flex flex-wrap items-center gap-4 border-b border-slate-200 dark:border-slate-700 p-5 [&>div]:mb-0 [&>div]:flex [&>div]:items-center [&>div]:gap-3 [&_label]:whitespace-nowrap [&_select]:w-auto max-sm:[&>div]:w-full">
+  <div className="ui-filters flex flex-wrap items-center gap-3 border-b border-slate-200 dark:border-slate-700 p-5 [&>div]:mb-0 [&>div]:flex [&>div]:items-center [&>div]:gap-3 [&_label]:whitespace-nowrap [&_select]:w-auto max-sm:[&>div]:w-full">
     {children}
   </div>
 );
 export function Search({ value, onChange, placeholder = 'Search records…', ...props }) {
   return (
-    <label className="flex min-w-48 max-w-96 flex-1 items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-slate-400 dark:text-slate-400 [&>input]:min-h-9 [&>input]:w-full [&>input]:border-0 [&>input]:py-2 [&>input]:text-xs [&>input]:outline-none">
+    <label className="ui-search flex min-w-0 max-w-96 flex-1 items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-slate-400 dark:text-slate-400 [&>input]:min-h-9 [&>input]:w-full [&>input]:border-0 [&>input]:py-2 [&>input]:text-xs [&>input]:outline-none">
       <SearchIcon size={17} />
       <input
+        type="search"
         aria-label={placeholder}
         placeholder={placeholder}
         value={value}
@@ -504,13 +533,17 @@ export function Search({ value, onChange, placeholder = 'Search records…', ...
   );
 }
 export const StatCard = ({ label, value, detail, icon: Icon }) => (
-  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 [&>strong]:my-3 [&>strong]:block [&>strong]:text-3xl [&>strong]:font-semibold [&>strong]:text-brand-800 dark:[&>strong]:text-brand-200 [&>small]:text-[11px] max-sm:p-3">
+  <div className="ui-stat min-w-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 [&>strong]:my-2 [&>strong]:block [&>strong]:text-3xl [&>strong]:font-semibold [&>strong]:text-brand-800 dark:[&>strong]:text-brand-200 [&>small]:text-[11px] max-sm:p-3">
     <div className="flex items-start justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 [&>svg]:text-brand-300">
       {label}
-      {Icon && <Icon size={17} />}
+      {Icon && (
+        <span className="ui-stat-icon">
+          <Icon size={18} aria-hidden="true" />
+        </span>
+      )}
     </div>
     <strong>{value ?? '—'}</strong>
-    <small>{detail}</small>
+    {detail && <small className="block">{detail}</small>}
   </div>
 );
 export const ActivityTimeline = ({ items }) => (
@@ -528,7 +561,7 @@ export const ActivityTimeline = ({ items }) => (
   </ol>
 );
 export const PageHeader = ({ eyebrow, title, description, action }) => (
-  <header className="mb-7 flex items-center justify-between gap-5 [&_h1]:mb-2 [&_p]:m-0 [&_p]:text-xs max-sm:items-start max-sm:[&>button]:px-2 max-sm:[&>button]:text-[0px] max-sm:[&>a]:px-2 max-sm:[&>a]:text-[0px]">
+  <header className="ui-page-header">
     <div>
       {eyebrow && (
         <span className="mb-2.5 block text-[10px] font-semibold tracking-widest text-slate-500 dark:text-slate-400">
@@ -538,15 +571,15 @@ export const PageHeader = ({ eyebrow, title, description, action }) => (
       <h1>{title}</h1>
       {description && <p>{description}</p>}
     </div>
-    {action}
+    {action && <div className="ui-page-actions">{action}</div>}
   </header>
 );
 export const Card = ({ title, action, children, className = '' }) => (
   <section
-    className={`overflow-visible rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 [&>form]:px-6 [&>form]:pb-6 [&>form]:pt-1 ${className}`}
+    className={`ui-card min-w-0 overflow-visible rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 [&>form]:px-6 [&>form]:pb-6 [&>form]:pt-1 ${className}`}
   >
     {title && (
-      <div className="flex items-center justify-between gap-3 px-6 pb-4 pt-5 [&>h2]:m-0 [&>h2]:text-sm">
+      <div className="ui-card-heading">
         <h2>{title}</h2>
         {action}
       </div>
@@ -589,10 +622,14 @@ export function ToastProvider({ children }) {
       >
         {toasts.map((t) => (
           <div
-            className={`flex items-center gap-3 rounded-lg border bg-white dark:bg-slate-900 px-5 py-4 text-xs shadow-xl [&>button]:ml-2 [&>button]:flex [&>button]:p-0 ${t.tone === 'error' ? 'border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300' : 'border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'}`}
+            className={`ui-toast flex items-center gap-3 rounded-lg border bg-white dark:bg-slate-900 px-5 py-4 text-xs shadow-xl [&>button]:ml-2 [&>button]:flex [&>button]:p-0 ${t.tone === 'error' ? 'border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300' : 'border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'}`}
             key={t.id}
           >
-            <Check size={18} />
+            {t.tone === 'error' ? (
+              <AlertCircle size={18} aria-hidden="true" />
+            ) : (
+              <Check size={18} aria-hidden="true" />
+            )}
             {t.message}
             <button
               aria-label="Dismiss notification"

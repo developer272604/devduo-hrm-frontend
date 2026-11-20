@@ -105,7 +105,7 @@ export function Select({
   return (
     <div
       ref={root}
-      className="relative mb-5 min-w-0"
+      className="ui-field relative mb-5 min-w-0"
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
@@ -171,7 +171,7 @@ export function Select({
           id={`${id}-options`}
           role="listbox"
           aria-labelledby={`${id}-label`}
-          className="absolute left-0 right-0 top-full z-40 mt-2 max-h-60 min-w-44 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/40"
+          className="ui-popover absolute left-0 right-0 top-full z-40 mt-2 max-h-60 min-w-0 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-lg shadow-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/40"
         >
           {normalized.map((option, index) => (
             <li

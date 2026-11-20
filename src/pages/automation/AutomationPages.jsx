@@ -727,22 +727,24 @@ function ReportResult({ result }) {
     result && (
       <Card title={result.label} className="mt-4">
         <p className="text-sm">{result.definition}</p>
-        <table className="my-4 w-full text-left text-sm">
-          <thead>
-            <tr>
-              <th>Group</th>
-              <th>Value ({result.unit})</th>
-            </tr>
-          </thead>
-          <tbody>
-            {result.rows.map((r, i) => (
-              <tr key={i}>
-                <td>{r.group}</td>
-                <td>{r.suppressed ? 'Suppressed — small cohort' : display(r.value)}</td>
+        <div className="ui-table my-4 overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead>
+              <tr>
+                <th>Group</th>
+                <th>Value ({result.unit})</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {result.rows.map((r, i) => (
+                <tr key={i}>
+                  <td>{r.group}</td>
+                  <td>{r.suppressed ? 'Suppressed — small cohort' : display(r.value)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {result.quality?.blocked && <p role="alert">{result.quality.blocked}</p>}
         <p className="text-xs">
           Minimum cohort: {result.minimum_cohort}. Refreshed{' '}

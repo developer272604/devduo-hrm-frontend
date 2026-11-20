@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import SectionNav from '../../components/SectionNav';
 import {
   Badge,
   Button,
@@ -39,25 +39,8 @@ const tone = (s) =>
 function PlatformShell({ title, description, children }) {
   return (
     <>
-      <PageHeader eyebrow="PHASE 14 · INTEGRATION PLATFORM" title={title} description={description} />
-      <nav aria-label="Integration sections" className="mb-5 flex flex-wrap gap-2">
-        {tabs.map(([to, label]) => (
-          <NavLink
-            key={to}
-            to={to}
-            end
-            className={({ isActive }) =>
-              `inline-flex min-h-10 items-center rounded-lg border px-4 text-xs font-semibold ${
-                isActive
-                  ? 'border-brand-600 bg-brand-50 text-brand-700 dark:border-brand-400 dark:bg-slate-900 dark:text-brand-300'
-                  : 'border-slate-200 text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900'
-              }`
-            }
-          >
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      <PageHeader eyebrow="INTEGRATION PLATFORM" title={title} description={description} />
+      <SectionNav label="Integration sections" items={tabs.map(([to, label]) => ({ to, label, end: true }))} />
       {children}
     </>
   );

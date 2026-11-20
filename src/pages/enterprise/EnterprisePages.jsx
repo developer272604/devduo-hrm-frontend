@@ -76,7 +76,7 @@ export function IntegrationsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PHASE 14 · ENTERPRISE PLATFORM"
+        eyebrow="ENTERPRISE PLATFORM"
         title="Integrations"
         description="Manage tenant connection metadata and run safe diagnostics. Provider adapters are not live yet."
       />
@@ -257,7 +257,7 @@ export function AccessReviewsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PHASE 15 · SECURITY & COMPLIANCE"
+        eyebrow="SECURITY & COMPLIANCE"
         title="Access reviews"
         description="Review role and permission snapshots. Decisions are audited; access is never revoked automatically."
       />
@@ -387,7 +387,7 @@ export function FindingsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="PHASE 16 · HRMS INTELLIGENCE"
+        eyebrow="HRMS INTELLIGENCE"
         title="Findings"
         description="Read-only findings from existing module providers, filtered by your permissions."
       />

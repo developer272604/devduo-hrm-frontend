@@ -87,9 +87,9 @@ function SettingsForm({ data }) {
     [error, setError] = useState(null);
   const set = (k, v) => setForm({ ...form, settings: { ...form.settings, [k]: v } });
   return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-[205px_minmax(0,1fr)] [&>section]:max-w-190 [&_form]:max-w-150">
+    <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 xl:grid-cols-[205px_minmax(0,1fr)] [&_form]:max-w-150">
       <nav
-        className="flex gap-1 overflow-x-auto pb-2 xl:flex-col [&>a]:flex [&>a]:items-center [&>a]:gap-3 [&>a]:whitespace-nowrap [&>a]:rounded-lg [&>a]:px-4 [&>a]:py-3 [&>a]:text-xs [&>a]:text-slate-600 dark:[&>a]:text-slate-300 [&>button]:flex [&>button]:items-center [&>button]:gap-3 [&>button]:whitespace-nowrap [&>button]:rounded-lg [&>button]:px-4 [&>button]:py-3 [&>button]:text-left [&>button]:text-xs"
+        className="settings-nav flex min-w-0 flex-wrap gap-1 rounded-xl border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-900 xl:flex-col [&>a]:flex [&>a]:items-center [&>a]:gap-3 [&>a]:whitespace-nowrap [&>a]:rounded-lg [&>a]:px-4 [&>a]:py-3 [&>a]:text-xs [&>a]:text-slate-600 dark:[&>a]:text-slate-300 [&>button]:flex [&>button]:items-center [&>button]:gap-3 [&>button]:whitespace-nowrap [&>button]:rounded-lg [&>button]:px-4 [&>button]:py-3 [&>button]:text-left [&>button]:text-xs"
         aria-label="Settings sections"
       >
         {settingsNav
@@ -108,6 +108,8 @@ function SettingsForm({ data }) {
             ) : (
               <button
                 key={label}
+                type="button"
+                aria-pressed={tab === target}
                 className={
                   tab === target
                     ? 'bg-brand-100 dark:bg-brand-900 font-semibold text-brand-800 dark:text-brand-200'

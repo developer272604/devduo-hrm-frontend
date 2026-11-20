@@ -43,7 +43,7 @@ import { experienceNavItem } from '../routes/experienceRoutes';
 import { operationsNavItems } from '../routes/operationsRoutes';
 import { automationNavItems } from '../routes/automationRoutes';
 import { enterpriseNavItems } from '../routes/enterpriseRoutes';
-import { Avatar, Badge, Button, Dropdown, Drawer, Breadcrumb, useToast } from './ui';
+import { Avatar, Badge, Button, Dropdown, Drawer, Breadcrumb, EmptyState, Modal, Search as SearchInput, useToast } from './ui';
 export const organizationTypes = {
   'legal-entities': 'Legal entities',
   locations: 'Locations',
@@ -61,12 +61,12 @@ export function Brand() {
   const { session } = useAuth();
   return (
     <Link
-      className="flex items-center gap-2.5 [&>img]:h-9 [&>img]:w-auto [&>img]:rounded-xl [&>img]:bg-slate-900 [&>img]:p-1.5 [&>span]:text-2xl [&>span]:font-extrabold [&>span]:leading-none [&>span]:tracking-tight [&_small]:mt-1.5 [&_small]:block [&_small]:text-[7px] [&_small]:font-semibold [&_small]:tracking-[1.6px] [&_small]:text-slate-400 dark:[&_small]:text-slate-400"
+      className="flex min-w-0 items-center gap-2.5 [&>img]:h-9 [&>img]:w-auto [&>img]:rounded-xl [&>img]:bg-slate-900 [&>img]:p-1.5 [&>span]:text-2xl [&>span]:font-extrabold [&>span]:leading-none [&>span]:tracking-tight [&_small]:mt-1.5 [&_small]:block [&_small]:text-[7px] [&_small]:font-semibold [&_small]:tracking-[1.6px] [&_small]:text-slate-400 dark:[&_small]:text-slate-400"
       to="/"
       aria-label="Devduo home"
     >
       <img src="/devduo-logo.png" alt="" />
-      <span>
+      <span className="min-w-0 wrap-anywhere">
         {session?.tenant.settings?.brand_name || 'devduo'}
         <span className="text-brand-700 dark:text-brand-300">.</span>
         <small>PEOPLE WORKSPACE</small>
@@ -110,7 +110,9 @@ export default function Layout() {
   const { session, can, enabled, logout } = useAuth(),
     [collapsed, setCollapsed] = useState(false),
     [mobile, setMobile] = useState(false),
-    [org, setOrg] = useState(true),
+    [org, setOrg] = useState(false),
+    [searchOpen, setSearchOpen] = useState(false),
+    [query, setQuery] = useState(''),
     [openMap, setOpenMap] = useState(readOpenMap);
   const location = useLocation(),
     navigate = useNavigate(),
@@ -213,7 +215,9 @@ export default function Layout() {
     { to: '/audit', label: 'Audit log', icon: ScrollText, permission: 'audit.view' },
     { to: '/settings', label: 'Settings', icon: Settings, permission: 'settings.manage' },
   ];
-  const visible = nav.filter((x) => can(x.permission) && enabled(x.module));
+  const isOwner = Boolean(session.account?.is_owner);
+  const isVisible = (item) => (!item.ownerOnly || isOwner) && can(item.permission) && enabled(item.module);
+  const visible = [...nav, ...admin].filter(isVisible);
   const pinned = nav.filter((x) => groupOf(x) === null);
   const groups = nav.reduce((acc, x) => {
     const id = groupOf(x);
@@ -236,30 +240,53 @@ export default function Layout() {
   useEffect(() => {
     if (activeGroupId && openMap[activeGroupId] === false) setOpenMap((m) => ({ ...m, [activeGroupId]: true }));
   }, [activeGroupId]); // eslint-disable-line react-hooks/exhaustive-deps
-  const isOwner = Boolean(session.account?.is_owner);
+  const isOrganizationPage = location.pathname.startsWith('/organization/');
+  useEffect(() => {
+    if (isOrganizationPage) setOrg(true);
+  }, [isOrganizationPage]);
+  const destinations = [
+    ...visible,
+    ...(can('organization.view')
+      ? Object.entries(organizationTypes).map(([key, label]) => ({ to: `/organization/${key}`, label, icon: Building2 }))
+      : []),
+    ...(enabled('notifications') ? [{ to: '/notifications', label: 'Notifications', icon: Bell }] : []),
+    { to: '/security', label: 'Password & security', icon: LockKeyhole },
+  ];
+  const terms = query.trim().toLowerCase().split(/\s+/);
+  const matches = destinations.filter((item) => {
+    const searchable = `${item.label} ${item.to.replaceAll(/[-/]/g, ' ')}`.toLowerCase();
+    return terms.every((term) => searchable.includes(term));
+  });
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setQuery('');
+  };
+
   const item = (x) =>
-    (!x.ownerOnly || isOwner) &&
-    can(x.permission) &&
-    enabled(x.module) && (
-      <NavLink
+    isVisible(x) && (
+      <Link
         key={x.to}
         to={x.to}
-        end={x.to === '/'}
-        className={() => (activeItem?.to === x.to ? 'active' : undefined)}
+        aria-current={activeItem?.to === x.to ? 'page' : undefined}
+        aria-label={x.label}
+        className={activeItem?.to === x.to ? 'active' : undefined}
         title={collapsed ? x.label : undefined}
         onClick={() => setMobile(false)}
       >
         <x.icon size={19} />
         <span>{x.label}</span>
-      </NavLink>
+      </Link>
     );
   const orgBlock = (
     <>
       <button
+        type="button"
         className="my-0.5 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-xs text-slate-500 dark:text-slate-400 hover:bg-brand-50 dark:hover:bg-brand-950 [&>svg:last-child]:ml-auto group-data-[collapsed=true]/shell:[&>span]:hidden group-data-[collapsed=true]/shell:[&>svg:last-child]:hidden"
         onClick={() => {
-          if (collapsed) setCollapsed(false);
-          setOrg(!org);
+          if (collapsed && !mobile) {
+            setCollapsed(false);
+            setOrg(true);
+          } else setOrg(!org);
         }}
         aria-expanded={org}
       >
@@ -267,7 +294,7 @@ export default function Layout() {
         <span>Organization</span>
         <ChevronDown size={14} />
       </button>
-      {org && !collapsed && (
+      {org && (!collapsed || mobile) && (
         <div className="mb-3 ml-5 mt-1 border-l border-slate-200 dark:border-slate-700 pl-4 [&>a]:block [&>a]:rounded [&>a]:px-2 [&>a]:py-1.5 [&>a]:text-[11px] [&>a]:text-slate-500 dark:[&>a]:text-slate-400 [&>a.active]:bg-brand-50 dark:[&>a.active]:bg-brand-950 [&>a.active]:font-semibold [&>a.active]:text-brand-700 dark:[&>a.active]:text-brand-300">
           {Object.entries(organizationTypes).map(([key, label]) => (
             <NavLink key={key} to={`/organization/${key}`} onClick={() => setMobile(false)}>
@@ -278,7 +305,7 @@ export default function Layout() {
       )}
     </>
   );
-  const navigation = (
+  const navigation = (isMobile = false) => (
     <>
       <div className="mb-5 flex items-center gap-2.5 border-y border-slate-100 dark:border-slate-800 px-2 py-3 [&>div]:min-w-0 [&>div]:flex-1 [&_strong]:block [&_strong]:truncate [&_strong]:text-xs [&_small]:mt-1 [&_small]:block [&_small]:text-[10px] [&>svg]:text-slate-400 dark:[&>svg]:text-slate-400 group-data-[collapsed=true]/shell:hidden">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-brand-100 dark:border-brand-900 bg-brand-50 dark:bg-brand-950 text-sm font-semibold text-brand-600 dark:text-brand-300">
@@ -288,7 +315,6 @@ export default function Layout() {
           <strong>{session.tenant.name}</strong>
           <small>Your workspace</small>
         </div>
-        <ChevronDown size={15} />
       </div>
       <div className="mb-3 mt-1 px-3 text-[9px] font-semibold tracking-widest text-slate-400 dark:text-slate-400 group-data-[collapsed=true]/shell:hidden">
         WORKSPACE
@@ -298,7 +324,7 @@ export default function Layout() {
         const items = (groups[g.id] || []).filter((x) => can(x.permission) && enabled(x.module));
         const showOrg = g.id === 'people' && can('organization.view');
         if (!items.length && !showOrg) return null;
-        const open = collapsed || isOpen(g.id);
+        const open = (!isMobile && collapsed) || isOpen(g.id);
         const holdsActive = activeGroupId === g.id;
         return (
           <div key={g.id} className="mt-1 group-data-[collapsed=true]/shell:mt-2 group-data-[collapsed=true]/shell:border-t group-data-[collapsed=true]/shell:border-slate-100 group-data-[collapsed=true]/shell:pt-2 dark:group-data-[collapsed=true]/shell:border-slate-800">
@@ -306,14 +332,14 @@ export default function Layout() {
               type="button"
               className={`mb-1 mt-2 flex w-full items-center justify-between rounded px-3 py-1.5 text-left text-[9px] font-semibold tracking-widest hover:bg-brand-50 dark:hover:bg-brand-950 group-data-[collapsed=true]/shell:hidden ${holdsActive ? 'text-brand-700 dark:text-brand-300' : 'text-slate-400 dark:text-slate-400'}`}
               aria-expanded={open}
-              aria-controls={`nav-group-${g.id}`}
+              aria-controls={`nav-group-${isMobile ? 'mobile' : 'desktop'}-${g.id}`}
               onClick={() => toggleGroup(g.id)}
             >
               <span>{g.label.toUpperCase()}</span>
               <ChevronDown size={13} className={`transition-transform ${open ? '' : '-rotate-90'}`} />
             </button>
             {open && (
-              <nav id={`nav-group-${g.id}`} aria-label={g.label}>
+              <nav id={`nav-group-${isMobile ? 'mobile' : 'desktop'}-${g.id}`} aria-label={g.label}>
                 {items.map(item)}
                 {showOrg && orgBlock}
               </nav>
@@ -321,7 +347,7 @@ export default function Layout() {
           </div>
         );
       })}
-      {admin.some((x) => (!x.ownerOnly || isOwner) && can(x.permission)) && (
+      {admin.some(isVisible) && (
         <>
           <div className="mb-3 mt-1 px-3 text-[9px] font-semibold tracking-widest text-slate-400 dark:text-slate-400 group-data-[collapsed=true]/shell:hidden">
             ADMINISTRATION
@@ -329,13 +355,6 @@ export default function Layout() {
           <nav aria-label="Administration">{admin.map(item)}</nav>
         </>
       )}
-      <div className="mt-auto px-2.5 pt-7 [&>small]:text-[10px] group-data-[collapsed=true]/shell:hidden">
-        <div className="mb-2 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
-          <span className="size-1.5 rounded-full bg-emerald-500" />
-          <span>Foundation workspace</span>
-        </div>
-        <small>Thoughtfully built for your people.</small>
-      </div>
     </>
   );
   const route = location.pathname.split('/').filter(Boolean);
@@ -344,14 +363,17 @@ export default function Layout() {
   );
   return (
     <div className="group/shell flex min-h-screen" data-collapsed={collapsed}>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col overflow-y-auto border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 pb-4 min-[769px]:flex group-data-[collapsed=true]/shell:w-20 group-data-[collapsed=true]/shell:px-2 [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a]:hover:bg-brand-50 dark:[&_nav>a]:hover:bg-brand-950 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:font-semibold [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300 group-data-[collapsed=true]/shell:[&_nav>a>span]:hidden group-data-[collapsed=true]/shell:[&_nav>a]:justify-center">
-        <div className="px-2.5 pb-7 pt-7 group-data-[collapsed=true]/shell:[&>a>span]:hidden">
+      <a href="#workspace-content" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 dark:focus:bg-slate-900">Skip to content</a>
+      <aside aria-label="Workspace sidebar" className="workspace-sidebar fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 pb-4 min-[769px]:flex group-data-[collapsed=true]/shell:w-20 group-data-[collapsed=true]/shell:px-2 [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a]:hover:bg-brand-50 dark:[&_nav>a]:hover:bg-brand-950 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:font-semibold [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300 group-data-[collapsed=true]/shell:[&_nav>a>span]:hidden group-data-[collapsed=true]/shell:[&_nav>a]:justify-center">
+        <div className="px-2.5 pb-4 pt-5 group-data-[collapsed=true]/shell:[&>a>span]:hidden">
           <Brand />
         </div>
-        {navigation}
+        <div className="workspace-sidebar-scroll min-h-0 flex-1 overflow-y-auto pb-3">
+          {navigation()}
+        </div>
         <Button
           variant="ghost"
-          className="mt-4 justify-start! pl-2.5! text-[10px] group-data-[collapsed=true]/shell:mt-auto"
+          className="mt-2 shrink-0 justify-start! pl-2.5! text-[10px] group-data-[collapsed=true]/shell:justify-center! group-data-[collapsed=true]/shell:pl-2!"
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           onClick={() => setCollapsed(!collapsed)}
         >
@@ -367,32 +389,29 @@ export default function Layout() {
       </aside>
       <Drawer open={mobile} onClose={() => setMobile(false)} title="Your workspace">
         <div className="flex flex-col [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300">
-          {navigation}
+          {navigation(true)}
         </div>
       </Drawer>
       <div className="flex min-h-screen w-full min-w-0 flex-col min-[769px]:ml-60 min-[769px]:w-[calc(100%_-_15rem)] group-data-[collapsed=true]/shell:min-[769px]:ml-20 group-data-[collapsed=true]/shell:min-[769px]:w-[calc(100%_-_5rem)]">
         <TrialBanner />
-        <header className="flex h-20 shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-9 max-[769px]:h-16 max-[769px]:px-4">
-          <div className="flex items-center gap-2.5">
+        <header className="workspace-header sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-9 max-[769px]:h-16 max-[769px]:px-4">
+          <div className="flex min-w-0 items-center gap-2.5">
             <Button
               variant="ghost"
               className="min-[769px]:hidden!"
               aria-label="Open navigation"
+              aria-expanded={mobile}
               onClick={() => setMobile(true)}
             >
               <Menu size={21} />
             </Button>
             <Breadcrumb items={crumb.length ? crumb : ['Overview']} />
           </div>
-          <div className="flex items-center gap-4 max-sm:gap-2">
-            <span
-              className="mr-2 hidden items-center gap-2.5 text-xs text-slate-400 dark:text-slate-400 xl:flex [&>kbd]:rounded [&>kbd]:border [&>kbd]:border-slate-200 dark:[&>kbd]:border-slate-700 [&>kbd]:px-1 [&>kbd]:py-0.5 [&>kbd]:text-[9px]"
-              title="Global search will be available as more modules are added"
-            >
-              <Search size={16} />
-              <span>Search workspace</span>
-              <kbd>soon</kbd>
-            </span>
+          <div className="flex shrink-0 items-center gap-3 max-sm:gap-1">
+            <Button variant="ghost" className="px-2!" aria-label="Find a page" onClick={() => setSearchOpen(true)}>
+              <Search size={18} aria-hidden="true" />
+              <span className="hidden xl:inline">Find a page</span>
+            </Button>
             <ThemeToggle />
             {enabled('notifications') && (
               <Link
@@ -405,6 +424,7 @@ export default function Layout() {
             )}
             <span className="h-6 w-px bg-slate-200 dark:bg-slate-700 max-sm:hidden" />
             <Dropdown
+              label={session.user.name + " account menu"}
               trigger={
                 <>
                   <Avatar name={session.user.name} />
@@ -441,15 +461,38 @@ export default function Layout() {
           </div>
         </header>
         <main
-          className="mx-auto w-full max-w-[1530px] flex-1 px-9 pb-11 pt-8 max-lg:px-6 max-[769px]:px-5 max-sm:px-4"
+          id="workspace-content"
+          tabIndex={-1}
+          className="workspace-content mx-auto w-full min-w-0 max-w-[1530px] flex-1 px-8 pb-8 pt-6 max-xl:px-6 max-sm:px-4"
           key={location.pathname}
         >
           <Outlet />
         </main>
-        <footer className="flex justify-between gap-5 px-9 pb-6 text-[10px] text-slate-400 dark:text-slate-400 max-[769px]:px-5 max-sm:[&>span:last-child]:max-w-44 max-sm:[&>span:last-child]:text-right">
-          <span>devduo HRM</span>
-          <span>A little less admin. More room for people.</span>
-        </footer>
+        <Modal open={searchOpen} onClose={closeSearch} title="Find a page">
+          <SearchInput
+            data-initial-focus
+            placeholder="Search workspace pages"
+            value={query}
+            onChange={setQuery}
+          />
+          {matches.length ? (
+            <ul className="mt-3 max-h-[46dvh] overflow-y-auto p-1">
+              {matches.map(({ to, label, icon: Icon }) => (
+                <li key={to}>
+                  <Link
+                    to={to}
+                    onClick={closeSearch}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm hover:bg-brand-50 dark:hover:bg-brand-950"
+                  >
+                    <Icon size={18} aria-hidden="true" />
+                    <span>{label}</span>
+                    <ArrowUpRight size={15} aria-hidden="true" className="ml-auto text-slate-400" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : <EmptyState title="No matching pages" description="Try a module or page name." />}
+        </Modal>
       </div>
     </div>
   );

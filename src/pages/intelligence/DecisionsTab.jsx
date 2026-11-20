@@ -38,7 +38,7 @@ export function DecisionsTab() {
               {d.withheld_people ? ` ${d.withheld_people} other approver(s) have too few decisions to show.` : ''}
             </p>
             {d.rows.length ? (
-              <div className="overflow-x-auto">
+              <div className="ui-table overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
                     <tr>

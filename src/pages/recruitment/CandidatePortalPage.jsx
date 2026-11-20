@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api } from '../../lib/api';
-import { Button, ErrorState } from '../../components/ui';
+import { Button, PageHeader, ErrorState } from '../../components/ui';
 
 export default function CandidatePortalPage() {
   const { workspace } = useParams();
@@ -25,18 +25,21 @@ export default function CandidatePortalPage() {
     setBusy(true); setError(null);
     try { await action(); } catch (e) { setError(e); } finally { setBusy(false); }
   }
-  const inputClass = 'block w-full rounded border border-slate-300 bg-white p-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white';
-  return <main className="mx-auto max-w-2xl space-y-5 p-6">
-    <h1>Candidate application status</h1>
-    <Link className="text-brand-700 underline" to={`/careers/${encodeURIComponent(workspace)}`}>Browse jobs</Link>
+  const inputClass = 'mt-1 block min-h-10 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-white';
+  return <main className="mx-auto max-w-4xl space-y-4 px-4 py-6 sm:px-6 sm:py-10">
+    <PageHeader title="Candidate application status" action={
+      <Link className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-brand-700 hover:bg-brand-50 dark:border-slate-700 dark:bg-slate-900 dark:text-brand-300 dark:hover:bg-brand-950" to={`/careers/${encodeURIComponent(workspace)}`}>
+        Browse jobs
+      </Link>
+    } />
     {error && <ErrorState error={error} />}
     {message && <p role="status">{message}</p>}
-    {status ? <section className="space-y-4">
+    {status ? <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 sm:p-6">
       <h2>Hello, {status.name}</h2>
       {(status.offers ?? []).map((offer) => <article key={offer.uuid} className="space-y-3 rounded border border-brand-300 p-4">
         <h3>Offer: {offer.job_title}</h3><p>Version {offer.release_version} · {offer.status}</p>
         <p className="whitespace-pre-wrap">{offer.content}</p>
-        {offer.can_respond && <div className="flex gap-2"><Button disabled={busy} onClick={() => setOfferResponse({ offer, decision: 'accepted' })}>Accept offer</Button><Button disabled={busy} variant="secondary" onClick={() => setOfferResponse({ offer, decision: 'declined' })}>Decline offer</Button></div>}
+        {offer.can_respond && <div className="flex flex-wrap items-center gap-2"><Button disabled={busy} onClick={() => setOfferResponse({ offer, decision: 'accepted' })}>Accept offer</Button><Button disabled={busy} variant="secondary" onClick={() => setOfferResponse({ offer, decision: 'declined' })}>Decline offer</Button></div>}
       </article>)}
       {offerResponse && <section className="space-y-3 rounded border border-brand-300 p-4">
         <p>Confirm that you have reviewed version {offerResponse.offer.release_version} and want to {offerResponse.decision === 'accepted' ? 'accept' : 'decline'} this offer. This response is recorded and cannot be changed here.</p>
@@ -57,11 +60,11 @@ export default function CandidatePortalPage() {
         <Button disabled={busy} variant="secondary" onClick={() => setWithdrawal(null)}>Keep application</Button>
       </form>}
       <Button disabled={busy} onClick={() => act(async () => { await api(`${base}/logout`, { method: 'POST', sessionEvents: false }); setStatus(null); setCode(''); setMessage('Signed out of candidate access.'); })}>Sign out</Button>
-    </section> : <section className="space-y-5">
+    </section> : <section className="space-y-5 rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900 sm:p-6">
       <p>Use the email on your candidate record. Newly submitted applications become available after recruiter review. A verification code is valid for 15 minutes in this browser.</p>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); act(async () => { const r = await api(`${base}/code`, { method: 'POST', body: { email }, sessionEvents: false }); setMessage(r.message); setCode(''); }); }}>
         <label className="block">Email<input type="email" required maxLength={254} autoComplete="email" className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} /></label>
-        <Button type="submit" disabled={busy}>Email verification code</Button>
+        <Button type="submit" loading={busy}>Email verification code</Button>
       </form>
       <form className="space-y-3" onSubmit={(e) => { e.preventDefault(); act(async () => { await api(`${base}/verify`, { method: 'POST', body: { email, code: code.trim() }, sessionEvents: false }); setCode(''); setMessage(''); setStatus(await api(base, { sessionEvents: false })); }); }}>
         <label className="block">Verification code<input required minLength={64} maxLength={64} autoComplete="one-time-code" className={inputClass} value={code} onChange={(e) => setCode(e.target.value)} /></label>

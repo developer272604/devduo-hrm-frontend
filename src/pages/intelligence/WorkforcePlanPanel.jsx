@@ -48,7 +48,7 @@ function Results({ data }) {
         Starting headcount <strong>{r.baseline_headcount}</strong> ({r.baseline_source}). Annual attrition: low {r.assumptions.annual_attrition_pct.low}% · base{' '}
         {r.assumptions.annual_attrition_pct.base}% · high {r.assumptions.annual_attrition_pct.high}%.
       </p>
-      <div className="overflow-x-auto">
+      <div className="ui-table overflow-x-auto">
         <table className="w-full text-left">
           <thead>
             <tr>

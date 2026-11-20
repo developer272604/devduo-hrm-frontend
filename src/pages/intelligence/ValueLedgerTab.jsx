@@ -136,7 +136,7 @@ export function ValueLedgerTab({ canManage }) {
               <Tile title="Other claims" tone="neutral" value={moneyMap(d.totals.claimed_amount)} note={`${d.totals.claimed_hours} h, each with a written basis`} />
             </div>
             <p className="m-0 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">{d.confidence_note}</p>
-            <div className="overflow-x-auto text-xs">
+            <div className="ui-table overflow-x-auto text-xs">
               <table className="w-full text-left">
                 <thead>
                   <tr>

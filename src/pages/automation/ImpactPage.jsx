@@ -44,7 +44,7 @@ function MetricReport({ m }) {
         ) : (
           <p className="m-0 text-slate-500">{ratio.label}: needs at least two months with both a result and published payroll.</p>
         )}
-        <div className="overflow-x-auto">
+        <div className="ui-table overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr>

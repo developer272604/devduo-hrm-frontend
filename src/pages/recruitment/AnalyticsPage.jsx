@@ -19,7 +19,7 @@ export function SlaSection({ sla }) {
               <strong className={sla.breached_total > 0 ? 'text-amber-700 dark:text-amber-300' : ''}>{sla.breached_total ?? 0}</strong> active application(s) have exceeded their stage SLA.
             </p>
             <div className="grid gap-5 md:grid-cols-2">
-              <div className="overflow-x-auto">
+              <div className="ui-table overflow-x-auto">
                 <table className="w-full border-collapse text-left text-xs" aria-label="SLA breaches by stage">
                   <thead>
                     <tr className="text-slate-500 dark:text-slate-400">
@@ -43,7 +43,7 @@ export function SlaSection({ sla }) {
                   </tbody>
                 </table>
               </div>
-              <div className="overflow-x-auto">
+              <div className="ui-table overflow-x-auto">
                 <table className="w-full border-collapse text-left text-xs" aria-label="Average hours in stage">
                   <thead>
                     <tr className="text-slate-500 dark:text-slate-400">

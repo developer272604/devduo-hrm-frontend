@@ -34,7 +34,7 @@ export default function ResponsiveList({
   const clickable = Boolean(onRowClick);
   return (
     <>
-      <div className="hidden w-full overflow-x-auto md:block">
+      <div className="ui-table hidden w-full overflow-x-auto md:block">
         <table className="w-full border-collapse text-left text-xs" aria-label={label}>
           <thead>
             <tr>
@@ -92,7 +92,7 @@ export default function ResponsiveList({
           </tbody>
         </table>
       </div>
-      <ul className="m-0 list-none divide-y divide-slate-100 p-0 dark:divide-slate-800 md:hidden" aria-label={label}>
+      <ul className="ui-mobile-list m-0 list-none divide-y divide-slate-100 p-0 dark:divide-slate-800 md:hidden" aria-label={label}>
         {rows.map((row) => {
           const id = rowKey(row);
           return (
@@ -102,7 +102,12 @@ export default function ResponsiveList({
                 role={clickable ? 'button' : undefined}
                 tabIndex={clickable ? 0 : undefined}
                 onClick={clickable ? () => onRowClick(row) : undefined}
-                onKeyDown={clickable ? (e) => e.key === 'Enter' && onRowClick(row) : undefined}
+                onKeyDown={clickable ? (e) => {
+                  if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) {
+                    e.preventDefault();
+                    onRowClick(row);
+                  }
+                } : undefined}
               >
                 {onToggle && (
                   <input

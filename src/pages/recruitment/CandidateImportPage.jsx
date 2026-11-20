@@ -44,7 +44,7 @@ const Reasons = ({ errors }) =>
 function Rows({ label, columns, rows }) {
   return (
     <>
-      <div className="hidden overflow-x-auto md:block">
+      <div className="ui-table hidden overflow-x-auto md:block">
         <table className="w-full text-left text-xs">
           <caption className="sr-only">{label}</caption>
           <thead>

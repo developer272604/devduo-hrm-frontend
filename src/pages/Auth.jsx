@@ -77,16 +77,13 @@ export function AuthPage({ mode = 'login' }) {
     }
   }
   return (
-    <div className="relative grid min-h-screen grid-cols-1 bg-white dark:bg-slate-900 min-[769px]:grid-cols-[48%_52%]">
+    <div className="relative grid min-h-screen grid-cols-1 bg-white dark:bg-slate-900 min-[769px]:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
       <div className="absolute right-5 top-5 z-20">
         <ThemeToggle />
       </div>
-      <aside className="relative hidden flex-col overflow-hidden bg-brand-50 dark:bg-brand-950 px-14 pb-8 pt-12 min-[769px]:flex max-lg:px-8">
+      <aside className="relative hidden flex-col overflow-hidden bg-brand-50 dark:bg-brand-950 px-12 pb-7 pt-8 min-[769px]:flex max-lg:px-8">
         <Brand />
-        <div className="relative my-auto pb-5 pt-16 [&>h1]:mb-6 [&>h1]:text-5xl [&>h1]:font-semibold [&>h1]:leading-tight [&>h1]:tracking-tight [&>h1]:text-brand-900 dark:[&>h1]:text-brand-100 [&_em]:not-italic [&_em]:text-brand-400 [&>p]:max-w-88 [&>p]:text-sm [&>p]:leading-8 [&>p]:text-slate-500 dark:[&>p]:text-slate-400 max-lg:[&>h1]:text-4xl">
-          <span className="mb-2.5 block text-[10px] font-semibold tracking-widest text-slate-500 dark:text-slate-400">
-            YOUR PEOPLE. YOUR POSSIBILITY.
-          </span>
+        <div className="relative my-auto pb-4 pt-8 [&>h1]:mb-6 [&>h1]:text-5xl [&>h1]:font-semibold [&>h1]:leading-tight [&>h1]:tracking-tight [&>h1]:text-brand-900 dark:[&>h1]:text-brand-100 [&_em]:not-italic [&_em]:text-brand-400 [&>p]:max-w-88 [&>p]:text-sm [&>p]:leading-8 [&>p]:text-slate-500 dark:[&>p]:text-slate-400 max-lg:[&>h1]:text-4xl">
           <h1>
             Great work starts
             <br />
@@ -121,14 +118,14 @@ export function AuthPage({ mode = 'login' }) {
           </div>
         </div>
         <div className="z-10 flex justify-between pt-7 text-[9px] tracking-widest text-slate-500 dark:text-slate-400 [&>span]:tracking-normal">
-          PEOPLE FIRST. ALWAYS.<span>devduo HRM</span>
+          <span>DevDuo HRM</span>
         </div>
       </aside>
-      <main className="flex min-h-screen min-w-0 flex-col px-16 pb-6 pt-10 max-lg:px-10 max-sm:px-6">
-        <div className="mx-auto mt-4 min-[769px]:hidden">
+      <main className="flex min-h-dvh min-w-0 flex-col gap-6 px-12 pb-6 pt-8 max-lg:px-10 max-sm:px-6">
+        <div className="mr-auto mt-2 min-[769px]:hidden">
           <Brand />
         </div>
-        <div className="m-auto w-full max-w-92 py-10 [&>h2]:mb-3 [&>h2]:text-3xl [&>h2]:font-semibold [&>h2]:tracking-tight [&>h2]:text-brand-900 dark:[&>h2]:text-brand-100 [&>p]:mb-8 [&>p]:text-sm [&>form>button]:mt-3 [&>form>button]:min-h-11 [&>form>button]:justify-between">
+        <div className="m-auto w-full max-w-lg rounded-2xl border border-slate-200 p-6 dark:border-slate-700 sm:p-8 [&>h2]:mb-3 [&>h2]:text-3xl [&>h2]:font-semibold [&>h2]:tracking-tight [&>h2]:text-brand-900 dark:[&>h2]:text-brand-100 [&>p]:mb-8 [&>p]:text-sm [&>form>button]:mt-3 [&>form>button]:min-h-11 [&>form>button]:justify-between">
           <span className="mb-2.5 block text-[10px] font-semibold tracking-widest text-slate-500 dark:text-slate-400">
             {mode === 'login' ? 'WELCOME TO YOUR WORKSPACE' : 'ACCOUNT RECOVERY'}
           </span>
@@ -199,7 +196,7 @@ export function AuthPage({ mode = 'login' }) {
                   />
                   <button
                     type="button"
-                    className="absolute right-2 top-8 flex p-1 text-slate-400 dark:text-slate-400 hover:text-brand-700 dark:hover:text-brand-300"
+                    className="absolute right-2 top-7 flex p-1 text-slate-400 dark:text-slate-400 hover:text-brand-700 dark:hover:text-brand-300"
                     aria-label={show ? 'Hide password' : 'Show password'}
                     onClick={() => setShow(!show)}
                   >
