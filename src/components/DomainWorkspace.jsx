@@ -15,7 +15,7 @@ export function RemoteSelect({ label, path, value, onChange, display = (r) => r.
     }).catch((e) => { if (e.name !== 'AbortError') setError(e); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
   }, [path, page, retry]);
-  return <div><Select label={label} value={value || ''} onChange={onChange} required options={[{ value: '', label: loading ? 'Loading…' : 'Choose…' }, ...rows.filter(filter).map((r) => ({ value: String(r[valueKey]), label: display(r) }))]} />
+  return <div><Select label={label} value={value || ''} onChange={(event) => onChange(event, rows.find((row) => String(row[valueKey]) === event.target.value))} required options={[{ value: '', label: loading ? 'Loading…' : 'Choose…' }, ...rows.filter(filter).map((r) => ({ value: String(r[valueKey]), label: display(r) }))]} />
     {error && <p role="alert" className="mb-3 text-sm text-rose-600 dark:text-rose-300">{error.message} <Button type="button" variant="secondary" onClick={() => setRetry((x) => x + 1)}>Retry</Button></p>}
     {page < last && <Button type="button" variant="secondary" disabled={loading} onClick={() => setPage((p) => p + 1)}>Load more options</Button>}
   </div>;

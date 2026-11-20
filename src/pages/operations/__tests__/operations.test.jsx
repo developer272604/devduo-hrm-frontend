@@ -11,6 +11,23 @@ import { calls, mockApi } from '../../payroll/__tests__/helpers';
 afterEach(() => { cleanup(); vi.resetAllMocks(); });
 const wrap = (ui, route, path) => <ToastProvider><MemoryRouter initialEntries={[path]}><Routes><Route path={route} element={ui} /></Routes></MemoryRouter></ToastProvider>;
 describe('Assets, expenses and travel', () => {
+  it('submits an advance from the approved trip and links the expense form', async () => {
+    permissions = ['travel.self', 'expenses.self'];
+    mockApi(api, {
+      '/requests/t1/advances': { uuid: 'advance1', status: 'requested' },
+      '/requests/t1/desk': { advances: [], bookings: [], claims: [], can_request_advance: true,
+        reconciliation: { status: 'open', currency: 'USD', budget: '900', actual: '0', advance: '0', settlement: '0', blockers: [] } },
+      '/requests/t1': { uuid: 't1', destination: 'London', purpose: 'Workshop', status: 'approved', currency: 'USD', budget: '900' },
+    });
+    render(wrap(<TravelDetailPage />, '/travel/:uuid', '/travel/t1'));
+    expect(await screen.findByRole('link', { name: 'Add trip expense' })).toHaveAttribute('href', '/expenses?trip=t1');
+    fireEvent.click(screen.getByRole('button', { name: 'Request advance' }));
+    fireEvent.change(screen.getByLabelText('Amount (USD)'), { target: { value: '150.00' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    expect(await screen.findByText('Travel desk updated.')).toBeInTheDocument();
+    expect(calls(api, '/requests/t1/advances')[0][1].body).toEqual({ amount: '150.00' });
+    expect(screen.queryByRole('button', { name: 'Close reconciliation' })).not.toBeInTheDocument();
+  });
   it('saves itinerary legs with explicit offsets and the loaded version', async () => {
     permissions = ['travel.self'];
     mockApi(api, { '/requests/t1/itinerary': { uuid: 't1' }, '/requests/t1': { uuid: 't1', destination: 'London', purpose: 'Workshop', status: 'draft', can_submit: true, itinerary: [], itinerary_version: 2 } });

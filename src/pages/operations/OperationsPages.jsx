@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Button, Card, ErrorState, PageHeader, Skeleton, Input } from '../../components/ui';
 import Access from '../../components/Access';
 import { FormModal, StatusBadge, useDo } from '../../components/payroll/kit';
 import { operationPaths as paths, operationPermissions, currencyOptions, send, useList } from '../../lib/operationsApi';
 import { useAuth } from '../../lib/auth';
 import { download } from '../../lib/api';
+import TravelDesk from './TravelDesk';
 
 function Page({ module, title, description, action, children }) {
   return <Access module={module} permission={operationPermissions[module]}><PageHeader title={title} description={description} action={action} />{children}</Access>;
@@ -66,11 +67,14 @@ export function ExpensePoliciesPage() {
 const emptyLine = () => ({ spent_on: '', merchant: '', description: '', amount: '' });
 export function ExpensesPage() {
   const { can } = useAuth(); const [page, setPage] = useState(1); const [create, setCreate] = useState(false);
+  const [params] = useSearchParams();
+  const trip = params.get('trip');
   const list = useList(`${paths.claims}?page=${page}`); const policies = useList(can('expenses.self') ? paths.policies : null);
-  return <Page module="expenses" title="Expense claims" description="Submit business expenses and follow approval and reimbursement confirmation." action={can('expenses.self') && <Button onClick={() => setCreate(true)}>New claim</Button>}>
+  return <Page module="expenses" title="Expense claims" description="Submit business expenses and follow approval and reimbursement confirmation." action={can('expenses.self') && <Button onClick={() => setCreate(true)}>{trip ? 'New trip claim' : 'New claim'}</Button>}>
+    {trip && <p className="mb-4 text-sm">New claims will be linked to the selected trip. <Link to="/expenses" className="underline">Clear trip selection</Link></p>}
     {can('expenses.self|expenses.manage|expenses.approve') && <Link className="mb-4 inline-block text-sm underline" to="/expenses/policies">Expense policies</Link>}
     <Result resource={list}><div className="grid gap-3">{list.rows.map((c) => <Card key={c.uuid} title={<Link className="text-brand-700 underline" to={`/expenses/${c.uuid}`}>{c.title}</Link>} action={<StatusBadge value={c.status} />}><p>{c.currency} {c.total}</p></Card>)}{!list.rows.length && <Card>No claims to show.</Card>}</div><Pager list={list} page={page} setPage={setPage} /></Result>
-    <FormModal open={create} onClose={() => setCreate(false)} title="New expense claim" initial={{ lines: [emptyLine()] }} fields={[
+    <FormModal open={create} onClose={() => setCreate(false)} title={trip ? "New trip expense claim" : "New expense claim"} initial={{ lines: [emptyLine()], ...(trip ? { travel_request_uuid: trip } : {}) }} fields={[
       { name: 'title', label: 'Claim title' }, { name: 'policy_uuid', label: 'Policy version', options: policies.rows.map((p) => ({ value: p.uuid, label: `${p.name} · ${p.currency} · limit ${p.max_amount}` })) },
     ]} extra={(v, set) => <>{policies.error && <ErrorState error={policies.error} onRetry={policies.reload} />}{(v.lines || []).map((line, index) => <fieldset key={index} className="mb-4 rounded-lg border border-slate-200 p-3"><legend className="text-sm">Expense {index + 1}</legend>{[['spent_on', 'Expense date', 'date'], ['merchant', 'Merchant', 'text'], ['description', 'Business purpose', 'text'], ['amount', 'Amount', 'text']].map(([key, label, type]) => <Input key={key} label={`${label} ${index + 1}`} required type={type} value={line[key]} onChange={(e) => set('lines', v.lines.map((l, i) => i === index ? { ...l, [key]: e.target.value } : l))} />)}{v.lines.length > 1 && <Button variant="secondary" onClick={() => set('lines', v.lines.filter((_, i) => i !== index))}>Remove expense {index + 1}</Button>}</fieldset>)}<Button variant="secondary" disabled={(v.lines?.length || 0) >= 20} onClick={() => set('lines', [...v.lines, emptyLine()])}>Add expense line</Button></>}
       onSubmit={async (v) => { const r = await send('POST', paths.claims, v); list.reload(); return r; }} success="Draft claim created. Open it to attach receipts and submit." />
@@ -116,7 +120,7 @@ export function TravelDetailPage() {
     {!t.itinerary?.length && <p className="text-sm">No itinerary legs recorded.</p>}
     {t.can_submit && <Button variant="secondary" onClick={() => setEditItinerary(true)}>Edit itinerary</Button>}
     {t.decision_reason && <p className="mt-3 text-sm">Decision: {t.decision_reason}</p>}
-  </Card>}</Result><FormModal open={Boolean(action)} onClose={() => setAction(null)} title="Record travel decision" fields={[{ name: 'reason', label: 'Reason', textarea: true }]}
+  </Card>}</Result>{t?.status === 'approved' && <TravelDesk trip={t} />}<FormModal open={Boolean(action)} onClose={() => setAction(null)} title="Record travel decision" fields={[{ name: 'reason', label: 'Reason', textarea: true }]}
     onSubmit={async (v) => { const r = await send('POST', paths.trip(uuid, 'actions'), { ...v, action }); detail.reload(); return r; }} success="Travel request updated" />
     <FormModal open={editItinerary} onClose={() => setEditItinerary(false)} title="Edit itinerary" initial={{ legs: t?.itinerary || [], version: t?.itinerary_version }} fields={[]}
       intro="Enter timestamps with an explicit offset, for example 2026-11-01T09:00:00+05:30, and the matching timezone, such as Asia/Kolkata. Legs must fit the trip dates in the trip timezone."
