@@ -45,6 +45,6 @@ export function useEmployeeOptions() {
   }, []);
   return rows.map((e) => ({
     value: e.uuid,
-    label: [e.name ?? e.full_name, e.employee_number].filter(Boolean).join(' · ') || e.uuid,
+    label: [e.display_name ?? e.name ?? e.full_name, e.employee_number].filter(Boolean).join(' · ') || e.uuid,
   }));
 }

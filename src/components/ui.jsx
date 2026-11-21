@@ -36,12 +36,22 @@ export function Button({
   loading = false,
   type = 'button',
   className = '',
+  to,
   ...props
 }) {
+  const classes = `ui-button inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant] || buttonVariants.primary}  ${className}`;
+  // `to` renders one link styled as a button, so there is a single focus target (no button nested in a link).
+  if (to) {
+    return (
+      <Link to={to} className={classes} {...props}>
+        {children}
+      </Link>
+    );
+  }
   return (
     <button
       type={type}
-      className={`ui-button inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-4 py-2.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant] || buttonVariants.primary}  ${className}`}
+      className={classes}
       {...props}
       disabled={props.disabled || loading}
       aria-busy={loading || undefined}
@@ -462,15 +472,17 @@ export const EmptyState = ({
   </div>
 );
 export function ErrorState({ error, onRetry }) {
+  // A 4xx (other than timeout / rate limit) is an eligibility or validation answer, not a transient failure: retrying cannot help.
+  const permanent = error?.status >= 400 && error?.status < 500 && ![408, 429].includes(error.status);
   return (
     <div
       className="px-4 py-8 text-center text-rose-500 [&>svg]:mx-auto [&>svg]:mb-3 [&>h3]:mb-2 [&>h3]:text-sm [&>h3]:text-rose-800 dark:[&>h3]:text-rose-200 [&>p]:mx-auto [&>p]:mb-4 [&>p]:max-w-sm [&>p]:text-sm"
       role="alert"
     >
       <AlertCircle size={24} />
-      <h3>{error?.status === 403 ? 'Access restricted' : 'We couldn’t load this page'}</h3>
+      <h3>{error?.status === 403 ? 'Access restricted' : permanent ? 'This isn’t available yet' : 'We couldn’t load this page'}</h3>
       <p>{error?.message || 'Check your connection and try again.'}</p>
-      {onRetry && (
+      {onRetry && !permanent && (
         <Button variant="secondary" onClick={onRetry}>
           Try again
         </Button>

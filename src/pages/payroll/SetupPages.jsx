@@ -78,7 +78,7 @@ function GroupDrawer({ group, onClose, canEdit }) {
 export function GroupsPage() {
   const { can } = useAuth();
   const list = useList(`${paths.groups}?per_page=100`);
-  const entities = useLookup('/v1/organization/legal-entities');
+  const entities = useLookup('/organization/legal-entities?per_page=100');
   const [create, setCreate] = useState(false);
   const [open, setOpen] = useState(null);
   const canEdit = can('payroll.configure');
@@ -107,7 +107,7 @@ export function GroupsPage() {
         fields={[
           { name: 'name', label: 'Group name' },
           { name: 'code', label: 'Code', hint: 'Uppercase letters, numbers and underscores.' },
-          { name: 'legal_entity_id', label: 'Legal entity', options: entities.map((e) => ({ value: e.id, label: e.name })) },
+          { name: 'legal_entity_id', label: 'Legal entity', hint: entities.length ? undefined : 'No legal entity available. Add one under Organization → Legal entities (needs organization access).', options: entities.map((e) => ({ value: e.id, label: e.name })) },
           { name: 'country', label: 'Country code', hint: 'Two-letter code.' },
           { name: 'currency', label: 'Currency', hint: 'Three-letter code.' },
           { name: 'timezone', label: 'Timezone', hint: 'IANA name, for example Europe/London.' },

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useResource } from '../../../lib/hooks';
 import { useAuth } from '../../../lib/auth';
 import { leavePaths, listOf, todayLocal } from '../../../lib/leaveApi';
@@ -73,9 +73,7 @@ export default function MyLeave() {
         description="Your balances, requests and the reasoning behind every number."
         action={
           can('leave.request') && (
-            <Link to="/leave/new">
-              <Button>Request leave</Button>
-            </Link>
+            <Button to="/leave/new">Request leave</Button>
           )
         }
       />

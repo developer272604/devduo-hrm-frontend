@@ -44,7 +44,7 @@ export function CasesPage() {
   const list = useList(`${paths.cases}?page=${page}${kind ? `&kind=${kind}` : ''}`);
   const [create, setCreate] = useState(null);
   const employees = useEmployeeOptions();
-  const pct = (c) => `${c.readiness?.percent ?? 0}%`;
+  const pct = (c) => (c.readiness?.total === 0 ? "No tasks configured" : `${c.readiness?.percent ?? 0}%`);
   return (
     <Page
       permission="lifecycle.view"
@@ -283,7 +283,7 @@ export function CaseDetailPage() {
             <KeyValues
               data={{
                 anchor_date: c.anchor_date,
-                progress: `${c.readiness?.percent ?? 0}%`,
+                progress: c.readiness?.total === 0 ? "No tasks configured" : `${c.readiness?.percent ?? 0}%`,
                 overdue: c.readiness?.overdue,
                 mandatory_pending: c.readiness?.mandatory_pending,
               }}

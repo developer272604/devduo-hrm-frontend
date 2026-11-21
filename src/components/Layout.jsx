@@ -254,12 +254,22 @@ export default function Layout() {
     ...(can('organization.view')
       ? Object.entries(organizationTypes).map(([key, label]) => ({ to: `/organization/${key}`, label, icon: Building2 }))
       : []),
+    // Module subpages and everyday names, so "payslip" or "salary" finds Payroll self-service.
+    ...(visible.some((x) => x.to === '/payroll')
+      ? [
+          { to: '/payroll/my/payslips', label: 'My payslips', keywords: 'payslip pay slip salary wage payment' },
+          { to: '/payroll/my/compensation', label: 'My compensation', keywords: 'salary pay ctc wage' },
+          { to: '/payroll/my/benefits', label: 'My benefits' },
+          { to: '/payroll/my/loans', label: 'My loans', keywords: 'advance' },
+          { to: '/payroll/my/tax', label: 'My tax', keywords: 'tds declaration' },
+        ].map((x) => ({ ...x, icon: payrollNavItem.icon }))
+      : []),
     ...(enabled('notifications') ? [{ to: '/notifications', label: 'Notifications', icon: Bell }] : []),
     { to: '/security', label: 'Password & security', icon: LockKeyhole },
   ];
   const terms = query.trim().toLowerCase().split(/\s+/);
   const matches = destinations.filter((item) => {
-    const searchable = `${item.label} ${item.to.replaceAll(/[-/]/g, ' ')}`.toLowerCase();
+    const searchable = `${item.label} ${item.keywords || ''} ${item.to.replaceAll(/[-/]/g, ' ')}`.toLowerCase();
     return terms.every((term) => searchable.includes(term));
   });
   const closeSearch = () => {
