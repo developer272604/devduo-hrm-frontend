@@ -1,11 +1,19 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../lib/auth';
 import { api, query } from '../../lib/api';
 import { useDebounced } from '../../lib/hooks';
 import { Input, Select } from '../ui';
 
 /** Loads `[{value,label}]` options from a list endpoint. Failures (e.g. no permission) yield no options. */
-export function useOptions(path, { map } = {}) {
+export function useOptions(path, opts) {
+  return useOptionsState(path, opts).options;
+}
+
+/** Same as useOptions but also reports whether the first load has finished. */
+export function useOptionsState(path, { map } = {}) {
   const [options, setOptions] = useState([]);
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
     if (!path) return undefined;
     const controller = new AbortController();
@@ -20,12 +28,13 @@ export function useOptions(path, { map } = {}) {
             )
             .filter((o) => o.value && o.label),
         );
+        setLoaded(true);
       })
       .catch(() => {});
     return () => controller.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path]);
-  return options;
+  return { options, loaded };
 }
 
 const orgPath = (type) => `/organization/${type}?per_page=100`;
@@ -33,17 +42,34 @@ export const useOrgOptions = (type, enabled = true) => useOptions(enabled ? orgP
 
 /** Organization single-select (department, location, employee-types, designations, legal-entities). */
 export function OrgSelect({ type, label, value, onChange, any = 'Any', required, error, name }) {
-  const options = useOrgOptions(type);
+  const { options, loaded } = useOptionsState(orgPath(type));
+  const { can } = useAuth();
+  const empty = loaded && options.length === 0;
   return (
-    <Select
-      label={label}
-      name={name}
-      required={required}
-      error={error}
-      value={value ?? ''}
-      onChange={onChange}
-      options={[{ value: '', label: any }, ...options]}
-    />
+    <div>
+      <Select
+        label={label}
+        name={name}
+        required={required}
+        error={error}
+        value={value ?? ''}
+        onChange={onChange}
+        options={[{ value: '', label: any }, ...options]}
+      />
+      {empty && required && (
+        <p className="-mt-2 mb-3 text-xs text-slate-600">
+          No {label.toLowerCase()} options exist yet.{' '}
+          {can('organization.view') ? (
+            <Link className="font-medium underline" to={`/organization/${type}`} target="_blank" rel="noreferrer">
+              Add one in Settings
+            </Link>
+          ) : (
+            'Ask an administrator to add one.'
+          )}{' '}
+          Reopen this list afterwards; what you typed here is kept.
+        </p>
+      )}
+    </div>
   );
 }
 

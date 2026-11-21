@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import ProfileLinkNotice from '../../components/ProfileLinkNotice';
 import { Button, Card, ErrorState, PageHeader, Skeleton } from '../../components/ui';
 import Access from '../../components/Access';
 import { FormModal, StatusBadge, useDo } from '../../components/payroll/kit';
@@ -61,6 +62,7 @@ export function TicketListPage() {
   const fields = [{ name: 'category_uuid', label: 'Request type', options: categories.rows.map((c) => ({ value: c.uuid, label: c.name })) },
     { name: 'subject', label: 'Subject' }, { name: 'description', label: 'Describe what you need', textarea: true }];
   return <Page permission="experience.self|experience.view|experience.ticket.manage" title={employee && !can('experience.view') ? 'My HR requests' : 'HR service desk'} description={employee && !can('experience.view') ? 'Create a request and follow updates from HR.' : 'Review service requests visible within your access scope.'} action={employee && <Button onClick={() => setCreate(true)}>New request</Button>}>
+    <ProfileLinkNotice feature="Raising an HR request" />
     {can('experience.ticket.manage') && <Card className="mb-4" title="Service queue" action={can('experience.category.manage') && <Button variant="secondary" onClick={() => setCreateCategory(true)}>Add routed category</Button>}><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
       <label className="text-xs">Status<select aria-label="Queue status" className="mt-1 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-900" value={queue.status} onChange={(e) => setQueue((q) => ({ ...q, status: e.target.value }))}><option value="">All statuses</option>{['open', 'in_progress', 'waiting_employee', 'resolved', 'closed'].map((x) => <option key={x} value={x}>{x.replace('_', ' ')}</option>)}</select></label>
       <label className="text-xs">Priority<select aria-label="Queue priority" className="mt-1 min-h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm dark:border-slate-700 dark:bg-slate-900" value={queue.priority} onChange={(e) => setQueue((q) => ({ ...q, priority: e.target.value }))}><option value="">All priorities</option>{['low', 'normal', 'high', 'urgent'].map((x) => <option key={x} value={x}>{x}</option>)}</select></label>

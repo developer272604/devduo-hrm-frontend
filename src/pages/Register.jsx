@@ -10,7 +10,7 @@ import { PlanCards } from '../components/PlanCards';
 const perks = [
   'Full access to every HRMS module for 24 hours',
   'No credit card required',
-  'After the trial, the HRMS owner approves your account to continue',
+  'After the trial, the DevDuo team approves your account to continue',
 ];
 
 export function RegisterPage() {

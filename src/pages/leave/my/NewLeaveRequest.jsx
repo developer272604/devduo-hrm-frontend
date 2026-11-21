@@ -1,8 +1,29 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { useResource } from '../../../lib/hooks';
+import { useAuth } from '../../../lib/auth';
+import ProfileLinkNotice from '../../../components/ProfileLinkNotice';
 import { leavePaths, listOf, unwrap } from '../../../lib/leaveApi';
 import { EmptyState, PageHeader, Resource } from '../../../components/ui';
 import NewRequestForm from '../../../components/leave/my/NewRequestForm';
+
+function NoTypes() {
+  const { can } = useAuth();
+  const manage = can('leave.policy.manage|leave.manage');
+  return (
+    <>
+    <ProfileLinkNotice feature="Requesting leave" />
+    <EmptyState
+      title="No leave types available"
+      description={
+        manage
+          ? 'Either no leave type has been set up yet, or none applies to your employee profile (eligibility rules, or no linked employee profile). Set up leave types first, then check eligibility on the policy.'
+          : 'No leave type is open to you yet. Contact HR if you think this is a mistake.'
+      }
+      action={manage ? <Link className="underline" to="/leave/hr/types">Set up leave types</Link> : undefined}
+    />
+    </>
+  );
+}
 
 function Types({ children }) {
   const types = useResource(`${leavePaths.types}?active_only=1`);
@@ -12,10 +33,7 @@ function Types({ children }) {
         listOf(res).length ? (
           children(listOf(res))
         ) : (
-          <EmptyState
-            title="No leave types available"
-            description="No leave type is open to you yet. Contact HR if you think this is a mistake."
-          />
+          <NoTypes />
         )
       }
     </Resource>

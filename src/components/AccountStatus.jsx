@@ -29,16 +29,16 @@ export function TrialBanner() {
   return (
     <div role="status" className="flex items-center justify-center gap-2 bg-brand-600 px-4 py-2 text-xs font-medium text-white">
       <Clock size={14} />
-      Free trial: {remaining(account.trial_ends_at, now)} left. After that, your account is suspended until the HRMS owner approves it.
+      Free trial: {remaining(account.trial_ends_at, now)} left. After that, your account is suspended until the DevDuo team (the HRMS owner) approves it. Contact DevDuo support to request approval.
     </div>
   );
 }
 
 const copy = {
-  trial_expired: ['Your free trial has ended', 'Your 24-hour trial is over and your account is suspended. The HRMS owner needs to approve it before you can continue. Your data is safe.'],
-  rejected: ['Account not approved', 'The HRMS owner did not approve this account. Contact them if you think this is a mistake.'],
-  deactivated: ['Account deactivated', 'This account has been deactivated. Contact the HRMS owner to restore access.'],
-  default: ['Account suspended', 'This account is suspended. Contact the HRMS owner to restore access.'],
+  trial_expired: ['Your free trial has ended', 'Your 24-hour trial is over and your account is suspended. The DevDuo team (the HRMS owner) needs to approve it, so contact DevDuo support to request approval before you can continue. Your data is safe.'],
+  rejected: ['Account not approved', 'The DevDuo team did not approve this account. Contact them if you think this is a mistake.'],
+  deactivated: ['Account deactivated', 'This account has been deactivated. Contact DevDuo support to restore access.'],
+  default: ['Account suspended', 'This account is suspended. Contact DevDuo support to restore access.'],
 };
 
 /** Replaces the app while the account is suspended, rejected or deactivated. */

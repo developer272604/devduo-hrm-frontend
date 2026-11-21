@@ -37,6 +37,7 @@ export const INITIAL = {
   country: 'IN',
   timezone: 'Asia/Kolkata',
   probation_applicable: false,
+  link_to_me: false,
   probation_start: '',
   probation_end: '',
   contract_start: '',
@@ -158,7 +159,7 @@ export function buildPayload(d, { quick = false, confirmDuplicates = false } = {
     : ['employee_number', 'joined_on', 'worker_type', 'status', 'country', 'timezone', 'work_email', 'work_phone', 'probation_start', 'probation_end', 'contract_start', 'contract_end', 'notice_period_days'], ['notice_period_days']);
   if (!quick && d.probation_applicable) employment.probation_applicable = true;
   const assignment = pick(d, [...ORG_FIELDS.map(([f]) => f), ...(quick ? [] : ['work_mode'])], ORG_FIELDS.map(([f]) => f));
-  return { person, employment, assignment, ...(confirmDuplicates ? { confirm_duplicates: true } : {}) };
+  return { person, employment, assignment, ...(d.link_to_me ? { link_to_me: true } : {}), ...(confirmDuplicates ? { confirm_duplicates: true } : {}) };
 }
 
 const STEP_FIELDS = {

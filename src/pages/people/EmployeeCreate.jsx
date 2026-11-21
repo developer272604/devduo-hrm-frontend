@@ -31,7 +31,7 @@ import {
 const DRAFT_KEY = 'people.employee.draft';
 
 export default function EmployeeCreate() {
-  const { can } = useAuth(),
+  const { can, session } = useAuth(),
     navigate = useNavigate(),
     toast = useToast(),
     [params] = useSearchParams();
@@ -144,6 +144,11 @@ export default function EmployeeCreate() {
     <div className="grid gap-x-4 sm:grid-cols-2">
       {input('legal_first_name', 'Legal first name', { required: true, maxLength: 120, autoComplete: 'off' })}
       {input('legal_last_name', 'Legal last name', { maxLength: 120 })}
+      {session?.has_employee_profile === false && (
+        <div className="sm:col-span-2">
+          <Checkbox label="This is me: link this employee profile to my login" checked={Boolean(data.link_to_me)} onChange={set('link_to_me')} />
+        </div>
+      )}
       {!quick && input('legal_middle_name', 'Legal middle name', { maxLength: 120 })}
       {!quick && input('preferred_name', 'Preferred name', { maxLength: 120 })}
     </div>

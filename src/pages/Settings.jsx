@@ -261,7 +261,7 @@ const steps = [
   'Location',
   'Departments',
   'Work week',
-  'Employee types',
+  'Employee types & designations',
   'Admin & HR',
   'Review',
 ];
@@ -312,7 +312,7 @@ function SetupForm({ data }) {
     3: { location: '', address: '' },
     4: { departments: [] },
     5: { work_week: [1, 2, 3, 4, 5] },
-    6: { employee_types: [] },
+    6: { employee_types: [], designations: [] },
     7: { hr_email: data.settings?.hr_email || '', notifications: true },
     8: {},
   };
@@ -398,7 +398,7 @@ function SetupForm({ data }) {
                 'Where does your team work?',
                 'Give your teams a home. One department per line.',
                 'Set your usual working days.',
-                'Define your employee categories. One type per line.',
+                'Define your employee categories and job titles. One per line. Both are needed to add your first employee.',
                 'Choose your HR contact and preferences.',
                 'Make sure everything looks right before you finish.',
               ][step - 1]
@@ -468,7 +468,12 @@ function SetupForm({ data }) {
               onChange={(v) => set('work_week', v)}
             />
           )}
-          {step === 6 && lines('employee_types', 'Employee types')}
+          {step === 6 && (
+            <>
+              {lines('employee_types', 'Employee types')}
+              {lines('designations', 'Designations', 'Job titles such as Manager or Engineer.')}
+            </>
+          )}
           {step === 7 && (
             <>
               <Input

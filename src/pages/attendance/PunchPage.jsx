@@ -5,6 +5,7 @@ import { ApiError } from '../../lib/api';
 import { useResource } from '../../lib/hooks';
 import { fmtMinutes, fmtTime, newKey, punchStatus, sendPunch } from '../../lib/attendanceApi';
 import { Button, Card, Checkbox, ErrorState, PageHeader, Skeleton } from '../../components/ui';
+import ProfileLinkNotice from '../../components/ProfileLinkNotice';
 
 /** Server clock: offset from the server_time in the status payload, so the device clock is never trusted or shown. */
 function useServerClock(serverTime, timeZone) {
@@ -115,6 +116,7 @@ export default function PunchPage() {
   if (resource.error)
     return (
       <>
+        <ProfileLinkNotice feature="Checking in" />
         <PageHeader title="Check in" description="Record your attendance." />
         <ErrorState error={resource.error} onRetry={resource.reload} />
       </>

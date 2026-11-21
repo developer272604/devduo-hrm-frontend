@@ -70,7 +70,9 @@ export function ExpensesPage() {
   const [params] = useSearchParams();
   const trip = params.get('trip');
   const list = useList(`${paths.claims}?page=${page}`); const policies = useList(can('expenses.self') ? paths.policies : null);
-  return <Page module="expenses" title="Expense claims" description="Submit business expenses and follow approval and reimbursement confirmation." action={can('expenses.self') && <Button onClick={() => setCreate(true)}>{trip ? 'New trip claim' : 'New claim'}</Button>}>
+  const noPolicy = can('expenses.self') && Boolean(policies.data) && !policies.error && policies.rows.length === 0;
+  return <Page module="expenses" title="Expense claims" description="Submit business expenses and follow approval and reimbursement confirmation." action={can('expenses.self') && <Button disabled={noPolicy} title={noPolicy ? 'An expense policy must exist before claims can be entered' : undefined} onClick={() => setCreate(true)}>{trip ? 'New trip claim' : 'New claim'}</Button>}>
+    {noPolicy && <p role="status" className="mb-4 text-sm">No expense policy exists yet, so claims cannot be entered. {can('expenses.manage') ? <>Create one in <Link to="/expenses/policies" className="underline">Expense policies</Link>.</> : 'Ask a finance administrator to create one.'}</p>}
     {trip && <p className="mb-4 text-sm">New claims will be linked to the selected trip. <Link to="/expenses" className="underline">Clear trip selection</Link></p>}
     {can('expenses.self|expenses.manage|expenses.approve') && <Link className="mb-4 inline-block text-sm underline" to="/expenses/policies">Expense policies</Link>}
     <Result resource={list}><div className="grid gap-3">{list.rows.map((c) => <Card key={c.uuid} title={<Link className="text-brand-700 underline" to={`/expenses/${c.uuid}`}>{c.title}</Link>} action={<StatusBadge value={c.status} />}><p>{c.currency} {c.total}</p></Card>)}{!list.rows.length && <Card>No claims to show.</Card>}</div><Pager list={list} page={page} setPage={setPage} /></Result>
