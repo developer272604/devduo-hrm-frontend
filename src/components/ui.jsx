@@ -12,12 +12,12 @@ import {
   LoaderCircle,
 } from 'lucide-react';
 const buttonVariants = {
-  primary: 'bg-brand-500 text-white shadow-sm hover:bg-brand-600',
+  primary: 'bg-brand-500 text-white shadow-sm hover:bg-brand-600 active:bg-brand-700',
   secondary:
-    'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-brand-50 dark:hover:bg-brand-950',
+    'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 shadow-xs hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-950',
   ghost:
     'bg-transparent p-2 text-slate-500 dark:text-slate-400 hover:bg-brand-50 dark:hover:bg-brand-950 hover:text-brand-700 dark:hover:text-brand-300',
-  danger: 'bg-rose-700 text-white hover:bg-rose-800',
+  danger: 'bg-rose-700 text-white shadow-sm hover:bg-rose-800',
 };
 const badgeTones = {
   neutral:
@@ -87,7 +87,7 @@ export function Input({ label, error, hint, id, ...props }) {
   return (
     <Field label={label} error={error} hint={hint} htmlFor={key}>
       <input
-        className="w-full min-h-11 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400 focus:border-brand-400 focus:outline-2 focus:outline-brand-100"
+        className="w-full min-h-11 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 shadow-xs placeholder:text-slate-400 dark:placeholder:text-slate-400 hover:border-slate-400 focus:border-brand-400 focus:outline-2 focus:outline-brand-100"
         id={key}
         aria-invalid={!!error}
         aria-describedby={
@@ -104,7 +104,7 @@ export function Textarea({ label, error, hint, id: suppliedId, ...props }) {
   return (
     <Field label={label} error={error} hint={hint} htmlFor={id}>
       <textarea
-        className="w-full min-h-11 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-400 focus:border-brand-400 focus:outline-2 focus:outline-brand-100 min-h-24 resize-y"
+        className="w-full min-h-11 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-800 dark:text-slate-100 shadow-xs placeholder:text-slate-400 dark:placeholder:text-slate-400 hover:border-slate-400 focus:border-brand-400 focus:outline-2 focus:outline-brand-100 min-h-24 resize-y"
         id={id}
         aria-invalid={!!error}
         aria-describedby={
@@ -190,7 +190,7 @@ export function DateRange({ from, to, onChange }) {
 }
 export const Badge = ({ children, tone = 'neutral' }) => (
   <span
-    className={`inline-flex items-center whitespace-nowrap rounded-md border px-2 py-0.5 text-[11px] font-medium capitalize ${badgeTones[tone] || badgeTones.neutral}`}
+    className={`inline-flex items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold capitalize ${badgeTones[tone] || badgeTones.neutral}`}
   >
     {children}
   </span>
@@ -318,7 +318,7 @@ export function Modal({ open, onClose, title, children, drawer = false }) {
       }}
     >
       <section
-        className={`ui-dialog w-full overflow-y-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg outline-none ${drawer ? 'h-dvh max-h-dvh max-w-80 rounded-none p-5' : 'max-h-[90dvh] max-w-xl rounded-2xl p-4 sm:p-6'}`}
+        className={`ui-dialog w-full overflow-y-auto border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl outline-none ${drawer ? 'h-dvh max-h-dvh max-w-80 rounded-none p-5' : 'max-h-[90dvh] max-w-xl rounded-2xl p-4 sm:p-6'}`}
         ref={ref}
         tabIndex={-1}
         role="dialog"
@@ -498,7 +498,7 @@ export function Resource({ resource, children }) {
 export function DataTable({ columns, rows, empty }) {
   if (!rows?.length) return <EmptyState {...empty} />;
   return (
-    <div className="ui-table w-full overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_table]:text-xs [&_th]:whitespace-nowrap [&_th]:border-b [&_th]:border-slate-200 dark:[&_th]:border-slate-700 [&_th]:bg-slate-50 dark:[&_th]:bg-slate-950 [&_th]:px-5 [&_th]:py-3 [&_th]:text-xs [&_th]:font-medium [&_th]:text-slate-500 dark:[&_th]:text-slate-400 [&_td]:max-w-88 [&_td]:border-b [&_td]:border-slate-100 dark:[&_td]:border-slate-800 [&_td]:px-5 [&_td]:py-4 [&_td]:align-middle [&_td]:text-slate-600 dark:[&_td]:text-slate-300 [&_td]:wrap-anywhere [&_tr:last-child_td]:border-b-0 [&_tbody_tr]:hover:bg-brand-50/30 dark:[&_tbody_tr]:hover:bg-brand-950/30 max-[769px]:overflow-visible max-[769px]:[&_table]:block max-[769px]:[&_thead]:hidden max-[769px]:[&_tbody]:block max-[769px]:[&_tr]:block max-[769px]:[&_tr]:border-b max-[769px]:[&_tr]:border-slate-200 dark:max-[769px]:[&_tr]:border-slate-700 max-[769px]:[&_tr]:px-4 max-[769px]:[&_tr]:py-3 max-[769px]:[&_td]:flex max-[769px]:[&_td]:max-w-none max-[769px]:[&_td]:items-center max-[769px]:[&_td]:justify-between max-[769px]:[&_td]:gap-5 max-[769px]:[&_td]:border-0 max-[769px]:[&_td]:px-0 max-[769px]:[&_td]:py-2 max-[769px]:[&_td]:text-right max-[769px]:[&_td]:before:shrink-0 max-[769px]:[&_td]:before:text-left max-[769px]:[&_td]:before:text-xs max-[769px]:[&_td]:before:text-slate-500 dark:max-[769px]:[&_td]:before:text-slate-400 max-[769px]:[&_td]:before:content-[attr(data-label)]">
+    <div className="ui-table w-full overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_table]:text-xs [&_th]:whitespace-nowrap [&_th]:border-b [&_th]:border-slate-200 dark:[&_th]:border-slate-700 [&_th]:bg-slate-50 dark:[&_th]:bg-slate-950 [&_th]:px-5 [&_th]:py-3 [&_th]:text-[11px] [&_th]:font-semibold [&_th]:uppercase [&_th]:tracking-wider [&_th]:text-slate-500 dark:[&_th]:text-slate-400 [&_td]:max-w-88 [&_td]:border-b [&_td]:border-slate-100 dark:[&_td]:border-slate-800 [&_td]:px-5 [&_td]:py-3.5 [&_td]:align-middle [&_td]:text-slate-600 dark:[&_td]:text-slate-300 [&_td]:wrap-anywhere [&_tr:last-child_td]:border-b-0 [&_tbody_tr]:hover:bg-brand-50/30 dark:[&_tbody_tr]:hover:bg-brand-950/30 max-[769px]:overflow-visible max-[769px]:[&_table]:block max-[769px]:[&_thead]:hidden max-[769px]:[&_tbody]:block max-[769px]:[&_tr]:block max-[769px]:[&_tr]:border-b max-[769px]:[&_tr]:border-slate-200 dark:max-[769px]:[&_tr]:border-slate-700 max-[769px]:[&_tr]:px-4 max-[769px]:[&_tr]:py-3 max-[769px]:[&_td]:flex max-[769px]:[&_td]:max-w-none max-[769px]:[&_td]:items-center max-[769px]:[&_td]:justify-between max-[769px]:[&_td]:gap-5 max-[769px]:[&_td]:border-0 max-[769px]:[&_td]:px-0 max-[769px]:[&_td]:py-2 max-[769px]:[&_td]:text-right max-[769px]:[&_td]:before:shrink-0 max-[769px]:[&_td]:before:text-left max-[769px]:[&_td]:before:text-xs max-[769px]:[&_td]:before:text-slate-500 dark:max-[769px]:[&_td]:before:text-slate-400 max-[769px]:[&_td]:before:content-[attr(data-label)]">
       <table>
         <thead>
           <tr>
@@ -545,7 +545,7 @@ export function Search({ value, onChange, placeholder = 'Search records…', ...
   );
 }
 export const StatCard = ({ label, value, detail, icon: Icon }) => (
-  <div className="ui-stat min-w-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 [&>strong]:my-2 [&>strong]:block [&>strong]:text-3xl [&>strong]:font-semibold [&>strong]:text-brand-800 dark:[&>strong]:text-brand-200 [&>small]:text-[11px] max-sm:p-3">
+  <div className="ui-stat min-w-0 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 shadow-xs [&>strong]:my-2 [&>strong]:block [&>strong]:text-3xl [&>strong]:font-semibold [&>strong]:text-brand-800 dark:[&>strong]:text-brand-200 [&>small]:text-[11px] max-sm:p-3">
     <div className="flex items-start justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 [&>svg]:text-brand-300">
       {label}
       {Icon && (
@@ -588,7 +588,7 @@ export const PageHeader = ({ eyebrow, title, description, action }) => (
 );
 export const Card = ({ title, action, children, className = '' }) => (
   <section
-    className={`ui-card min-w-0 overflow-visible rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 [&>form]:px-6 [&>form]:pb-6 [&>form]:pt-1 ${className}`}
+    className={`ui-card min-w-0 overflow-visible rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xs [&>form]:px-6 [&>form]:pb-6 [&>form]:pt-1 ${className}`}
   >
     {title && (
       <div className="ui-card-heading">

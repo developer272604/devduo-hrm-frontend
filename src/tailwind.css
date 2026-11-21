@@ -19,7 +19,9 @@ html {
   font-size: 112.5%;
 }
 body {
-  font-weight: 500;
+  font-weight: 400;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 :root {
   --color-slate-400: #64748b;
@@ -562,5 +564,143 @@ a.active .workspace-nav-label {
   .dashboard-header .dashboard-date {
     justify-self: start;
     min-width: 0;
+  }
+}
+
+/* Professional polish layer: calmer typography, clearer hierarchy, consistent surfaces.
+   Kept in the components layer so any utility class on an element still wins. */
+@layer components {
+  ::selection {
+    background: var(--color-brand-200);
+    color: var(--color-brand-950);
+  }
+  h1,
+  h2,
+  h3 {
+    color: var(--color-slate-900);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+  .dark :is(h1, h2, h3) {
+    color: var(--color-slate-50);
+  }
+  label {
+    font-weight: 550;
+  }
+  :where(button, a, input, select, textarea) {
+    transition:
+      background-color 150ms ease,
+      border-color 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease;
+  }
+  :where(button, [role='button']):focus-visible,
+  :where(a):focus-visible {
+    outline: 2px solid var(--color-brand-400);
+    outline-offset: 2px;
+  }
+  input:not([type='checkbox'], [type='radio'], [type='range']):focus,
+  textarea:focus,
+  [role='combobox']:focus {
+    border-color: var(--color-brand-400);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-400) 22%, transparent);
+  }
+  input::placeholder,
+  textarea::placeholder {
+    font-weight: 400;
+  }
+  /* Surfaces */
+  .ui-card {
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+  .ui-card-heading {
+    border-bottom: 1px solid var(--color-slate-100);
+  }
+  .dark .ui-card-heading {
+    border-color: var(--color-slate-800);
+  }
+  .ui-page-header {
+    border-bottom-color: var(--color-slate-200);
+  }
+  .ui-page-header p {
+    color: var(--color-slate-500);
+    max-width: 62ch;
+    font-size: 0.85rem;
+  }
+  .ui-stat {
+    transition: box-shadow 150ms ease, border-color 150ms ease;
+  }
+  .ui-stat:hover {
+    border-color: var(--color-brand-200);
+    box-shadow: 0 4px 14px rgb(15 23 42 / 0.06);
+  }
+  /* Tables */
+  .ui-table table {
+    font-size: 0.8rem;
+  }
+  .ui-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  .ui-table tbody tr {
+    transition: background-color 120ms ease;
+  }
+  .ui-table td {
+    color: var(--color-slate-700);
+  }
+  .dark .ui-table td {
+    color: var(--color-slate-200);
+  }
+  /* Header + sidebar */
+  .workspace-header {
+    box-shadow: 0 1px 0 rgb(15 23 42 / 0.03);
+    backdrop-filter: saturate(1.4) blur(8px);
+  }
+  .workspace-sidebar nav > a {
+    border-radius: 0.6rem;
+  }
+  .workspace-sidebar nav > a:not(.active):hover {
+    color: var(--color-brand-700);
+  }
+  .dark .workspace-sidebar nav > a:not(.active):hover {
+    color: var(--color-brand-200);
+  }
+  .workspace-sidebar nav > a.active::before {
+    inset-block: 0.55rem;
+    inset-inline-start: -0.5rem;
+    background: var(--color-brand-500);
+  }
+  .workspace-group-label {
+    color: inherit;
+    opacity: 0.85;
+  }
+  .workspace-content {
+    padding-bottom: 3rem;
+  }
+  /* Dialogs and menus */
+  .ui-dialog {
+    box-shadow: 0 24px 60px -12px rgb(15 23 42 / 0.35);
+  }
+  .ui-popover {
+    box-shadow: 0 12px 32px -8px rgb(15 23 42 / 0.2);
+  }
+  .ui-toast {
+    box-shadow: 0 10px 30px -8px rgb(15 23 42 / 0.25);
+  }
+  /* Quiet, thin scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-slate-300) transparent;
+  }
+  .dark * {
+    scrollbar-color: var(--color-slate-600) transparent;
+  }
+  /* Numbers line up everywhere */
+  .ui-stat strong,
+  .dashboard-metric strong,
+  td,
+  th {
+    font-variant-numeric: tabular-nums;
   }
 }
