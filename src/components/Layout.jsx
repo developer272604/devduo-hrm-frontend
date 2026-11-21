@@ -60,17 +60,17 @@ export const organizationTypes = {
 };
 export function Brand() {
   const { session } = useAuth();
+  const name = session?.tenant.settings?.brand_name?.trim();
   return (
     <Link
-      className="flex min-w-0 items-center gap-2.5 [&>img]:h-9 [&>img]:w-auto [&>img]:rounded-xl [&>img]:bg-slate-900 [&>img]:p-1.5 [&>span]:text-2xl [&>span]:font-extrabold [&>span]:leading-none [&>span]:tracking-tight [&_small]:mt-1.5 [&_small]:block [&_small]:text-[7px] [&_small]:font-semibold [&_small]:tracking-[1.6px] [&_small]:text-slate-400 dark:[&_small]:text-slate-400"
+      className="flex min-w-0 items-center gap-2.5"
       to="/"
-      aria-label="Devduo home"
     >
-      <img src="/devduo-logo.png" alt="" />
-      <span className="devduo-wordmark min-w-0 wrap-anywhere">
-        {session?.tenant.settings?.brand_name || 'devduo'}
-        <span className="text-brand-700 dark:text-brand-300">.</span>
-        <small>People workspace</small>
+      <img className="h-9 w-auto shrink-0 rounded-xl bg-slate-900 p-1.5" src="/devduo-logo.png" alt="" />
+      <span className="devduo-wordmark min-w-0 wrap-anywhere text-xl leading-tight">
+        {name && name.toLowerCase() !== 'devduo' ? name : (
+          <>Devduo <span className="text-brand-700 dark:text-brand-300">HRM</span></>
+        )}
       </span>
     </Link>
   );

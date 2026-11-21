@@ -52,6 +52,7 @@ it('chooses the most specific nav item for a path', () => {
 it('shows section headers, opens only the section holding the current page, and hides the rest', () => {
   ui('/leave');
   const bar = within(sidebar());
+  expect(bar.getByRole('link', { name: 'Devduo HRM' })).toHaveAttribute('href', '/');
   for (const name of ['PEOPLE', 'TIME & PAY', 'OPERATIONS', 'AUTOMATION & INSIGHT', 'PLATFORM']) {
     expect(bar.getByRole('button', { name })).toBeInTheDocument();
   }

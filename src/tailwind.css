@@ -492,15 +492,8 @@ body {
   font-family: 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
 }
 .devduo-wordmark {
-  font-size: 1.55rem;
   font-weight: 750;
-  letter-spacing: -0.055em;
-}
-.devduo-wordmark small {
-  margin-top: 0.2rem;
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.015em;
+  letter-spacing: -0.035em;
 }
 .workspace-nav-label {
   font-size: 0.8rem;
