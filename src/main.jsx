@@ -219,6 +219,7 @@ createRoot(document.getElementById('root')).render(
                       path="*"
                       element={
                         <EmptyState
+                          tour={false}
                           title="This page isn’t here"
                           description="The page may have moved or the address may be incorrect."
                           action={

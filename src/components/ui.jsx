@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useInRouterContext, useLocation } from 'react-router-dom';
+import { guideFor } from '../lib/guideContent';
 import {
   X,
   Search as SearchIcon,
@@ -457,11 +458,37 @@ export const Skeleton = ({ rows = 4 }) => (
     ))}
   </div>
 );
+// Collapsed "what is this for / first steps" hint, taken from the section guide for the current page.
+function EmptyGuide() {
+  const entry = guideFor(useLocation().pathname);
+  if (!entry || entry.id === 'overview') return null;
+  return (
+    <details className="mx-auto mt-5 max-w-md rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-left dark:border-slate-700 dark:bg-slate-950">
+      <summary className="cursor-pointer text-xs font-semibold text-brand-700 dark:text-brand-300">
+        New to {entry.title}? See what it is for and where to start
+      </summary>
+      <p className="mt-3 text-xs text-slate-600 dark:text-slate-300">{entry.purpose}</p>
+      <ol className="mt-2 list-decimal pl-5 text-xs text-slate-600 dark:text-slate-300">
+        {entry.firstSteps.map((step) => (
+          <li key={step} className="mb-1">
+            {step}
+          </li>
+        ))}
+      </ol>
+      <Link to="/guide" className="text-xs font-semibold text-brand-700 dark:text-brand-300">
+        Open the full guide
+      </Link>
+    </details>
+  );
+}
 export const EmptyState = ({
   title = 'Nothing here yet',
   description = 'New records will appear here.',
   action,
-}) => (
+  tour = true,
+}) => {
+  const inRouter = useInRouterContext();
+  return (
   <div className="px-4 py-8 text-center text-brand-300 [&>svg]:mx-auto [&>svg]:mb-3 [&>h3]:mb-2 [&>h3]:text-sm [&>h3]:text-slate-600 dark:[&>h3]:text-slate-300 [&>p]:mx-auto [&>p]:mb-3 [&>p]:max-w-xs [&>p]:text-xs [&>p]:text-slate-500 dark:[&>p]:text-slate-400">
     <span className="ui-empty-icon">
       <Inbox size={22} aria-hidden="true" />
@@ -469,8 +496,10 @@ export const EmptyState = ({
     <h3>{title}</h3>
     <p>{description}</p>
     {action}
+    {tour && inRouter ? <EmptyGuide /> : null}
   </div>
-);
+  );
+};
 export function ErrorState({ error, onRetry }) {
   // A 4xx (other than timeout / rate limit) is an eligibility or validation answer, not a transient failure: retrying cannot help.
   const permanent = error?.status >= 400 && error?.status < 500 && ![408, 429].includes(error.status);

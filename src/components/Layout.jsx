@@ -510,7 +510,7 @@ export default function Layout() {
                 </li>
               ))}
             </ul>
-          ) : <EmptyState title="No matching pages" description="Try a module or page name." />}
+          ) : <EmptyState tour={false} title="No matching pages" description="Try a module or page name." />}
         </Modal>
       </div>
     </div>
