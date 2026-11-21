@@ -49,6 +49,19 @@ it('chooses the most specific nav item for a path', () => {
   expect(activeItemFor(items, '/unknown')).toBeUndefined();
 });
 
+it('keeps sidebar branding and the toggle available when collapsed', () => {
+  ui('/');
+  const bar = within(sidebar());
+  const brand = bar.getByRole('link', { name: 'Devduo HRM' });
+  expect(brand).toHaveTextContent('DEVDUO');
+  const collapse = bar.getByRole('button', { name: 'Collapse sidebar' });
+  expect(collapse.parentElement).toContainElement(brand);
+  fireEvent.click(collapse);
+  expect(bar.getByRole('link', { name: 'Devduo HRM' })).toBeInTheDocument();
+  fireEvent.click(bar.getByRole('button', { name: 'Expand sidebar' }));
+  expect(bar.getByRole('button', { name: 'Collapse sidebar' })).toBeInTheDocument();
+});
+
 it('shows section headers, opens only the section holding the current page, and hides the rest', () => {
   ui('/leave');
   const bar = within(sidebar());

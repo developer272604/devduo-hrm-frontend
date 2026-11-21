@@ -58,19 +58,21 @@ export const organizationTypes = {
   levels: 'Levels',
   'employee-types': 'Employee types',
 };
-export function Brand() {
+export function Brand({ sidebar = false }) {
   const { session } = useAuth();
   const name = session?.tenant.settings?.brand_name?.trim();
+  const customName = name && name.toLowerCase() !== 'devduo' ? name : null;
   return (
     <Link
       className="flex min-w-0 items-center gap-2.5"
       to="/"
+      aria-label={customName || 'Devduo HRM'}
     >
-      <img className="h-9 w-auto shrink-0 rounded-xl bg-slate-900 p-1.5" src="/devduo-logo.png" alt="" />
-      <span className="devduo-wordmark min-w-0 wrap-anywhere text-xl leading-tight">
-        {name && name.toLowerCase() !== 'devduo' ? name : (
+      <img className="h-8 w-auto shrink-0 object-contain group-data-[collapsed=true]/shell:h-6" src="/devduo-logo.png" alt="" />
+      <span className={`devduo-wordmark min-w-0 leading-tight ${sidebar ? 'truncate text-lg tracking-wider group-data-[collapsed=true]/shell:hidden' : 'wrap-anywhere text-xl'}`}>
+        {customName || (sidebar ? 'DEVDUO' : (
           <>Devduo <span className="text-brand-700 dark:text-brand-300">HRM</span></>
-        )}
+        ))}
       </span>
     </Link>
   );
@@ -368,27 +370,20 @@ export default function Layout() {
     <div className="group/shell flex min-h-screen" data-collapsed={collapsed}>
       <a href="#workspace-content" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 dark:focus:bg-slate-900">Skip to content</a>
       <aside aria-label="Workspace sidebar" className="workspace-sidebar fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 pb-4 min-[769px]:flex group-data-[collapsed=true]/shell:w-20 group-data-[collapsed=true]/shell:px-2 [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a]:hover:bg-brand-50 dark:[&_nav>a]:hover:bg-brand-950 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:font-semibold [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300 group-data-[collapsed=true]/shell:[&_nav>a>span]:hidden group-data-[collapsed=true]/shell:[&_nav>a]:justify-center">
-        <div className="px-2.5 pb-4 pt-5 group-data-[collapsed=true]/shell:[&>a>span]:hidden">
-          <Brand />
+        <div className="flex shrink-0 items-center justify-between gap-1 pb-4 pt-5 group-data-[collapsed=true]/shell:flex-col group-data-[collapsed=true]/shell:gap-2">
+          <Brand sidebar />
+          <Button
+            variant="ghost"
+            className="size-10 shrink-0 p-0!"
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            onClick={() => setCollapsed(!collapsed)}
+          >
+            {collapsed ? <PanelLeftOpen size={19} aria-hidden="true" /> : <PanelLeftClose size={19} aria-hidden="true" />}
+          </Button>
         </div>
         <div className="workspace-sidebar-scroll min-h-0 flex-1 overflow-y-auto pb-3">
           {navigation()}
         </div>
-        <Button
-          variant="ghost"
-          className="mt-2 shrink-0 justify-start! pl-2.5! text-[10px] group-data-[collapsed=true]/shell:justify-center! group-data-[collapsed=true]/shell:pl-2!"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? (
-            <PanelLeftOpen size={19} />
-          ) : (
-            <>
-              <PanelLeftClose size={19} />
-              <span>Collapse sidebar</span>
-            </>
-          )}
-        </Button>
       </aside>
       <Drawer open={mobile} onClose={() => setMobile(false)} title="Your workspace">
         <div className="workspace-mobile-nav flex flex-col [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300">
