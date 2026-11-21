@@ -3,6 +3,7 @@ import Access from '../components/Access';
 import MyAttendance from '../pages/attendance/MyAttendance';
 import PunchPage from '../pages/attendance/PunchPage';
 import TeamAttendance from '../pages/attendance/TeamAttendance';
+import ShiftOpeningsPage from '../pages/attendance/ShiftOpeningsPage';
 import TimeOfficeLayout from '../pages/timeoffice/TimeOfficeLayout';
 import CommandCenter from '../pages/timeoffice/CommandCenter';
 import DailyAttendance from '../pages/timeoffice/DailyAttendance';
@@ -34,6 +35,7 @@ export const attendanceRoutes = (
   <>
     <Route path="attendance" element={gate('attendance.view', <MyAttendance />)} />
     <Route path="attendance/punch" element={gate('attendance.view', <PunchPage />)} />
+    <Route path="attendance/open-shifts" element={gate('attendance.view', <ShiftOpeningsPage />)} />
     <Route path="attendance/team" element={gate('attendance.team.view', <TeamAttendance />)} />
     <Route path="time-settings" element={<Navigate to="/time-office" replace />} />
     <Route path="time-office" element={gate(TIME_OFFICE_ACCESS, <TimeOfficeLayout />)}>

@@ -33,6 +33,19 @@ const salaryFields = [
     ],
   },
 ];
+const signatureRequestField = {
+  name: 'signature_requested',
+  label: 'Request employee signature',
+  type: 'checkbox',
+};
+const signatureFields = [
+  { name: 'signer_name', label: 'Full name as shown in your employee record' },
+  {
+    name: 'consent',
+    label: 'I have reviewed this letter and agree to sign it electronically.',
+    type: 'checkbox',
+  },
+];
 
 const fieldHelp =
   'Use {{employee_name}}, {{employee_number}}, {{workspace_name}}, {{joined_on}}, {{separated_on}} or {{issued_on}}. Salary certificate templates must also include {{salary_amount}}, {{salary_currency}} and {{salary_period}}.';
@@ -42,6 +55,7 @@ function LetterLibrary({ uuid }) {
   const [newTemplate, setNewTemplate] = useState(false);
   const [template, setTemplate] = useState(null);
   const [acknowledging, setAcknowledging] = useState(null);
+  const [signing, setSigning] = useState(null);
   const path = '/v1/employees/' + uuid + '/letters';
   const resource = useResource(path + '?page=' + page);
   const toast = useToast();
@@ -56,6 +70,14 @@ function LetterLibrary({ uuid }) {
         row.acknowledged_at ? 'Received ' + row.acknowledged_at.slice(0, 10) : 'Pending',
     },
     {
+      key: 'signed_at',
+      label: 'Signature',
+      render: (row) => {
+        if (row.signed_at) return 'Signed ' + row.signed_at.slice(0, 10);
+        return row.signature_requested ? 'Awaiting signature' : 'Not requested';
+      },
+    },
+    {
       key: 'download',
       label: 'Actions',
       render: (row) => (
@@ -66,7 +88,13 @@ function LetterLibrary({ uuid }) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Print or save PDF
+            Print
+          </a>
+          <a
+            className="inline-flex min-h-10 items-center rounded-lg border border-slate-200 px-3 text-xs font-semibold text-brand-700 dark:border-slate-700 dark:text-brand-300"
+            href={apiBase + path + '/' + row.uuid + '/download?format=pdf'}
+          >
+            Download PDF
           </a>
           <Button
             variant="secondary"
@@ -84,6 +112,9 @@ function LetterLibrary({ uuid }) {
             <Button variant="secondary" onClick={() => setAcknowledging(row)}>
               Acknowledge receipt
             </Button>
+          )}
+          {row.canAcknowledge && row.signature_requested && !row.signed_at && (
+            <Button onClick={() => setSigning(row)}>Sign letter</Button>
           )}
         </div>
       ),
@@ -161,11 +192,39 @@ function LetterLibrary({ uuid }) {
           }}
         />
       )}
+      {signing && (
+        <FormModal
+          open
+          title={'Sign ' + signing.title}
+          fields={signatureFields}
+          submitLabel="Sign electronically"
+          success="Letter signed."
+          onClose={() => setSigning(null)}
+          onSubmit={async (body) => {
+            const result = await api(path + '/' + signing.uuid + '/sign', { method: 'POST', body });
+            resource.reload();
+            return result;
+          }}
+        >
+          <a
+            className="text-sm font-semibold text-brand-700 underline dark:text-brand-300"
+            href={apiBase + path + '/' + signing.uuid + '/download?format=print'}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Review letter in a new tab
+          </a>
+        </FormModal>
+      )}
       {template && (
         <FormModal
           open
           title={'Issue ' + template.title}
-          fields={template.kind === 'salary_certificate' ? salaryFields : []}
+          fields={
+            template.kind === 'salary_certificate'
+              ? [...salaryFields, signatureRequestField]
+              : [signatureRequestField]
+          }
           intro={
             template.kind === 'salary_certificate'
               ? 'Enter the amount verified by payroll for the selected pay period.'
@@ -189,8 +248,8 @@ function LetterLibrary({ uuid }) {
   );
 }
 
-export default function EmployeeLetters({ uuid }) {
-  const [expanded, setExpanded] = useState(false);
+export default function EmployeeLetters({ uuid, initiallyExpanded = false }) {
+  const [expanded, setExpanded] = useState(initiallyExpanded);
   return (
     <div className="mt-4 space-y-3">
       <Button variant="secondary" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>

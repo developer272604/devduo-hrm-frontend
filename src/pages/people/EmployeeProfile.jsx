@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { Mail, Phone } from 'lucide-react';
 import { useAuth } from '../../lib/auth';
@@ -78,7 +77,7 @@ function CompletenessLoader({ uuid, tabs, onGo }) {
   return <Completeness resource={resource} tabs={tabs} onGo={onGo} />;
 }
 
-function TabBody({ tab, uuid, profile, sections, edit, canView, tabs, onGo, reload }) {
+function TabBody({ tab, uuid, profile, sections, edit, canView, tabs, onGo, reload, openLetters }) {
   const cfg = SECTION_CONFIGS;
   switch (tab) {
     case 'overview':
@@ -124,7 +123,7 @@ function TabBody({ tab, uuid, profile, sections, edit, canView, tabs, onGo, relo
         />
       );
     case 'documents':
-      return <DocumentsPanel uuid={uuid} mode={edit.document || 'none'} />;
+      return <DocumentsPanel uuid={uuid} mode={edit.document || 'none'} openLetters={openLetters} />;
     case 'identity':
       return <SensitivePanel uuid={uuid} sections={sections} edit={edit} />;
     case 'notes':
@@ -146,8 +145,17 @@ function TabBody({ tab, uuid, profile, sections, edit, canView, tabs, onGo, relo
 export default function EmployeeProfile() {
   const { uuid } = useParams(),
     { can } = useAuth(),
-    [params] = useSearchParams();
-  const [tab, setTab] = useState(params.get('section') || 'overview');
+    [params, setParams] = useSearchParams();
+  const tab = params.get('section') || 'overview';
+  const openLetters = params.get('letters') === '1';
+  const setTab = (next) => {
+    setParams((current) => {
+      const updated = new URLSearchParams(current);
+      updated.set('section', next);
+      if (next !== 'documents') updated.delete('letters');
+      return updated;
+    }, { replace: true });
+  };
   const resource = useResource(`/v1/employees/${uuid}`);
   return (
     <Resource resource={resource}>
@@ -212,6 +220,7 @@ export default function EmployeeProfile() {
               <Tabs value={active} onChange={setTab} items={tabs} />
               <TabBody
                 tab={active}
+                openLetters={openLetters}
                 uuid={uuid}
                 profile={profile}
                 sections={sections}

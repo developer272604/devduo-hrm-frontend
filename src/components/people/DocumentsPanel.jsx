@@ -73,7 +73,7 @@ function UploadForm({ uuid, target, onDone, onCancel }) {
   );
 }
 
-export default function DocumentsPanel({ uuid, mode = 'none' }) {
+export default function DocumentsPanel({ uuid, mode = 'none', openLetters = false }) {
   const { can } = useAuth(),
     toast = useToast();
   const resource = useResource(`/v1/employees/${uuid}/documents`);
@@ -166,7 +166,7 @@ export default function DocumentsPanel({ uuid, mode = 'none' }) {
                 setBusy(false);
                 setRemoving(null);
               }} />
-            <EmployeeLetters key={uuid} uuid={uuid} />
+            <EmployeeLetters key={uuid + ':' + openLetters} uuid={uuid} initiallyExpanded={openLetters} />
           </section>
         );
       }}

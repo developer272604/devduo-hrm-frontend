@@ -57,20 +57,27 @@ export default function Dashboard() {
 
   return (
     <>
-      <header className="dashboard-hero">
-        <div className="dashboard-greeting">
+      <header className="dashboard-header">
+        <div className="dashboard-identity">
+          <span className="dashboard-workspace-icon" aria-hidden="true">
+            <Building2 size={23} />
+          </span>
+          <div className="dashboard-greeting">
+            <p className="dashboard-tenant">{session.tenant.name}</p>
+            <h1>Hello, {session.user.name.split(' ')[0]}.</h1>
+          </div>
+        </div>
+        <div className="dashboard-header-actions">
           <p className="dashboard-date">
             <CalendarDays size={16} aria-hidden="true" />
             {date}
           </p>
-          <h1>Hello, {session.user.name.split(' ')[0]}.</h1>
-          <p className="dashboard-tenant">{session.tenant.name}</p>
+          {can('work.manage') && enabled('work') && (
+            <Link to="/my-work?new=1" className={actionStyle}>
+              <Plus size={17} aria-hidden="true" /> Create task
+            </Link>
+          )}
         </div>
-        {can('work.manage') && enabled('work') && (
-          <Link to="/my-work?new=1" className={actionStyle}>
-            <Plus size={17} aria-hidden="true" /> Create task
-          </Link>
-        )}
       </header>
       <Resource resource={resource}>
         {(data) => {

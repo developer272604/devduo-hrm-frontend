@@ -1,10 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Copy, Plus, Search, Send, ShieldCheck, Undo2, Users } from 'lucide-react';
 import { Button, Card, ErrorState, Input, Pagination, Select, Skeleton, Tabs, useToast } from '../../components/ui';
 import { Banner, Screen, StatusBadge, guarded } from '../../components/timeoffice/parts';
 import { PreviewConfirm, ReasonDialog } from '../../components/timeoffice/dialogs';
 import { FormDialog } from '../../components/timeoffice/CrudPanel';
 import { useAuth } from '../../lib/auth';
+import RosterCoverage from './RosterCoverage';
+import { RosterOpenShifts } from '../attendance/ShiftOpeningsPage';
 import { useDebounced, useResource } from '../../lib/hooks';
 import { addDays, listOf, pageOf, paths, send, titleCase, today, toOptions, unwrap, useLookup } from '../../lib/timeOfficeApi';
 
@@ -94,6 +96,7 @@ function Legend() {
 /** The grid, edits, bulk tools and publish flow for one roster. */
 function RosterBoard({ roster, canEdit, onChanged }) {
   const toast = useToast();
+  const rosterPeriod = useRef(null);
   const [view, setView] = useState('week');
   const [anchor, setAnchor] = useState(() => {
     const t = today();
@@ -105,6 +108,8 @@ function RosterBoard({ roster, canEdit, onChanged }) {
   const [bulkRequest, setBulkRequest] = useState(null);
   const [publishing, setPublishing] = useState(null); // 'publish' | 'unpublish'
   const [validation, setValidation] = useState(null);
+  const [coverageRevision, setCoverageRevision] = useState(0);
+  const [showOpenings, setShowOpenings] = useState(false);
   const q = useDebounced(search);
   const range = useMemo(() => rangeFor(view, anchor), [view, anchor]);
   const dates = useMemo(() => datesIn(range), [range]);
@@ -120,6 +125,7 @@ function RosterBoard({ roster, canEdit, onChanged }) {
   const employeeUuids = rows.map((r) => r.employee_uuid);
   const saved = (msg) => {
     toast(msg);
+    setCoverageRevision((revision) => revision + 1);
     resource.reload();
     onChanged();
   };
@@ -162,11 +168,35 @@ function RosterBoard({ roster, canEdit, onChanged }) {
 
   return (
     <>
+      {canEdit && (
+        <div className="mb-4 grid gap-3">
+          <div><Button variant="secondary" aria-expanded={showOpenings} onClick={() => setShowOpenings(!showOpenings)}>Shift bidding</Button></div>
+          {showOpenings && <RosterOpenShifts roster={roster} shiftOptions={shiftOptions}
+            onRosterChanged={() => { setCoverageRevision((revision) => revision + 1); resource.reload(); onChanged(); }} />}
+        </div>
+      )}
+      <div className="mb-4">
+        <RosterCoverage
+          key={[range.from, range.to, coverageRevision].join(':')}
+          roster={roster}
+          from={range.from}
+          to={range.to}
+          shiftOptions={shiftOptions.filter((option) => option.value)}
+          onViewDay={(date) => {
+            setView('day');
+            setAnchor(date);
+            setPage(1);
+            setSearch('');
+            setValidation(null);
+            rosterPeriod.current?.focus();
+          }}
+        />
+      </div>
       <Card>
         <div className="flex flex-wrap items-end gap-3 p-5">
           <div className="flex items-center gap-1" role="group" aria-label="Period">
             <Button variant="secondary" aria-label="Previous period" onClick={() => { setAnchor(addDays(range.from, -step(view))); setPage(1); }}><ChevronLeft size={16} /></Button>
-            <strong className="min-w-40 text-center text-xs">{range.from}{range.to !== range.from ? ` to ${range.to}` : ''}</strong>
+            <strong ref={rosterPeriod} tabIndex={-1} aria-live="polite" className="min-w-40 rounded text-center text-xs focus-visible:outline-2 focus-visible:outline-brand-500">{range.from}{range.to !== range.from ? ` to ${range.to}` : ''}</strong>
             <Button variant="secondary" aria-label="Next period" onClick={() => { setAnchor(addDays(range.to, 1)); setPage(1); }}><ChevronRight size={16} /></Button>
             <Button variant="secondary" onClick={() => { setAnchor(today()); setPage(1); }}>Today</Button>
           </div>

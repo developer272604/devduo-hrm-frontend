@@ -52,9 +52,9 @@ function setup(viewer, handlers = {}) {
     return Promise.resolve({ data: [], viewer: { edit: 'direct' } });
   });
 }
-const mount = () =>
+const mount = (entry = '/people/e1') =>
   render(
-    <MemoryRouter initialEntries={['/people/e1']}>
+    <MemoryRouter initialEntries={[entry]}>
       <ToastProvider>
         <Routes>
           <Route path="/people/:uuid" element={<EmployeeProfile />} />
@@ -73,6 +73,18 @@ afterEach(() => {
 });
 
 describe('Employee profile', () => {
+  it('opens HR letters from the signature notification link', async () => {
+    setup({ sections: ['documents'], edit: {} }, {
+      '/v1/employees/e1/letters': () => Promise.resolve({
+        issued: { data: [], last_page: 1 },
+        templates: [],
+      }),
+    });
+    mount('/people/e1?section=documents&letters=1');
+    expect(await screen.findByRole('tab', { name: 'Documents', selected: true })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'HR letters' })).toHaveAttribute('aria-expanded', 'true');
+    expect(await screen.findByText('No issued letters')).toBeInTheDocument();
+  });
   it('shows tabs only for the sections the API returns', async () => {
     setup({ sections: ['personal', 'documents', 'notes'], edit: {} });
     mount();

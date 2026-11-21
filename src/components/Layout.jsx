@@ -31,6 +31,7 @@ import {
   CalendarClock,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { managerDestinations } from '../pages/ManagerDashboard';
 import { TIME_OFFICE_ACCESS } from '../routes/attendanceRoutes';
 import { leaveNavItems } from '../routes/leaveRoutes';
 import { LEAVE_HR_ACCESS } from '../routes/leaveHrRoutes';
@@ -119,6 +120,7 @@ export default function Layout() {
     toast = useToast();
   const nav = [
     { to: '/', label: 'Overview', icon: LayoutDashboard },
+    ...(managerDestinations(can, enabled).length ? [{ to: '/manager', label: 'Manager dashboard', icon: UsersRound }] : []),
     {
       to: '/my-work',
       label: 'My Work',
@@ -183,6 +185,7 @@ export default function Layout() {
       permission: TIME_OFFICE_ACCESS,
       module: 'attendance',
     },
+    { to: '/attendance/open-shifts', label: 'Open shifts', icon: CalendarCheck, permission: 'attendance.view', module: 'attendance' },
     ...leaveNavItems,
     {
       to: '/leave/hr',

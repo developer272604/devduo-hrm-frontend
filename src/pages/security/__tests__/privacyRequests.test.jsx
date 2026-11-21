@@ -50,7 +50,7 @@ it('submits a private request with a retry key and shows it in the employee list
   });
 });
 
-it('sends the loaded version with an administrator decision', async () => {
+it('sends the loaded version and attachment with a completed access decision', async () => {
   auth.privacy_management = true;
   api.mockImplementation(async (path, request) => {
     if (request?.method === 'POST') return { uuid: 'pr1', status: 'completed' };
@@ -83,10 +83,15 @@ it('sends the loaded version with an administrator decision', async () => {
   fireEvent.change(screen.getByLabelText('Message to requester'), {
     target: { value: 'Shared privately.' },
   });
+  const file = new File(['Private response'], 'response.txt', { type: 'text/plain' });
+  fireEvent.change(screen.getByLabelText('Response file'), { target: { files: [file] } });
   fireEvent.click(screen.getByRole('button', { name: 'Save decision' }));
   expect(await screen.findByText('Privacy request updated.')).toBeInTheDocument();
-  expect(api).toHaveBeenCalledWith('/v1/security/privacy-review/pr1', {
-    method: 'POST',
-    body: { status: 'completed', outcome: 'Shared privately.', version: 2 },
-  });
+  const [, request] = api.mock.calls.find(([url]) => url === '/v1/security/privacy-review/pr1');
+  expect(request.method).toBe('POST');
+  expect(request.body).toBeInstanceOf(FormData);
+  expect(request.body.get('status')).toBe('completed');
+  expect(request.body.get('version')).toBe('2');
+  expect(request.body.get('outcome')).toBe('Shared privately.');
+  expect(request.body.get('response_file').name).toBe('response.txt');
 });

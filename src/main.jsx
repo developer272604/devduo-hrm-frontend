@@ -27,6 +27,7 @@ import { SettingsPage, SetupPage } from './pages/Settings';
 import './tailwind.css';
 import { peopleRoutes } from './routes/peopleRoutes';
 import { attendanceRoutes } from './routes/attendanceRoutes';
+import ManagerDashboard from './pages/ManagerDashboard';
 import { leaveRoutes } from './routes/leaveRoutes';
 import { leaveHrRoutes } from './routes/leaveHrRoutes';
 import { payrollRoutes } from './routes/payrollRoutes';
@@ -120,6 +121,7 @@ createRoot(document.getElementById('root')).render(
                     <Route index element={<Dashboard />} />
                     {peopleRoutes}
                     {attendanceRoutes}
+                    <Route path="manager" element={<ManagerDashboard />} />
                     {leaveRoutes}
                     {leaveHrRoutes}
                     {payrollRoutes}

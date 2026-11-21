@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api, query } from '../../lib/api';
+import { api, download, query } from '../../lib/api';
 import { useAuth } from '../../lib/auth';
 import { useResource } from '../../lib/hooks';
 import {
@@ -7,11 +7,13 @@ import {
   Button,
   Card,
   EmptyState,
+  Input,
   PageHeader,
   Pagination,
   Resource,
   Select,
   Tabs,
+  useToast,
 } from '../../components/ui';
 import { FormModal } from '../../components/payroll/kit';
 
@@ -33,6 +35,7 @@ const choices = (mapping) => Object.entries(mapping).map(([value, label]) => ({ 
 const isOpen = (row) => ['submitted', 'in_review'].includes(row.status);
 
 function RequestList({ reviewing }) {
+  const toast = useToast();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState('');
   const [dialog, setDialog] = useState(null);
@@ -90,6 +93,23 @@ function RequestList({ reviewing }) {
                       <h3>Outcome</h3>
                       <p className="whitespace-pre-wrap wrap-anywhere text-sm">{row.outcome}</p>
                     </div>
+                  )}
+                  {!reviewing && row.has_file && (
+                    <Button
+                      variant="secondary"
+                      onClick={async () => {
+                        try {
+                          await download(
+                            requestPath + '/' + row.uuid + '/file',
+                            'privacy-response',
+                          );
+                        } catch (error) {
+                          toast(error.message, 'error');
+                        }
+                      }}
+                    >
+                      Download response file
+                    </Button>
                   )}
                   {isOpen(row) && (
                     <Button
@@ -151,7 +171,7 @@ function RequestList({ reviewing }) {
           title="Review privacy request"
           submitLabel="Save decision"
           onClose={() => setDialog(null)}
-          intro="Record the decision and how the request was handled. Share files through an authorized process."
+          intro="Record the decision and how the request was handled."
           fields={[
             {
               name: 'status',
@@ -164,11 +184,30 @@ function RequestList({ reviewing }) {
             },
             { name: 'outcome', label: 'Message to requester', textarea: true, required: false },
           ]}
+          extra={(values, set) =>
+            dialog.row.kind === 'access' && (
+              <Input
+                label="Response file"
+                type="file"
+                accept=".pdf,.txt,.csv,.json"
+                disabled={values.status !== 'completed'}
+                hint="Optional for completed access requests. Up to 2 MB."
+                onChange={(event) => set('response_file', event.target.files?.[0] ?? null)}
+              />
+            )
+          }
           success="Privacy request updated."
-          onSubmit={async (body) => {
+          onSubmit={async ({ response_file, ...values }) => {
+            let body = { ...values, version: dialog.row.version };
+            if (response_file && values.status === 'completed') {
+              const upload = new FormData();
+              for (const [key, value] of Object.entries(body)) upload.append(key, value);
+              upload.append('response_file', response_file);
+              body = upload;
+            }
             const result = await api(reviewPath + '/' + dialog.row.uuid, {
               method: 'POST',
-              body: { ...body, version: dialog.row.version },
+              body,
             });
             finish();
             return result;

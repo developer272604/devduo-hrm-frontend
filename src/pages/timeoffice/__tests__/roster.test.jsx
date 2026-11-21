@@ -10,6 +10,7 @@ import { api } from '../../../lib/api';
 import { mockApi } from './helpers';
 import RosterPage, { rangeFor } from '../RosterPage';
 import { addDays } from '../../../lib/timeOfficeApi';
+import { ToastProvider } from '../../../components/ui';
 
 afterEach(cleanup);
 beforeEach(() => {
@@ -49,6 +50,86 @@ const routes = (g, validate = { data: { conflicts: [], blocking: false, count: 0
 });
 
 describe('RosterPage states', () => {
+  it('shows date-specific staffing shortfalls for the selected threshold', async () => {
+    mockApi(api, {
+      '/rosters/r1/coverage': { data: [
+        { date: from, scheduled: 3, scheduled_minutes: 30, full_leave: 1, partial_leave: 1, available: 1, minimum: 2, shortfall: 1 },
+        { date: addDays(from, 1), scheduled: 2, available: 2, minimum: 2, shortfall: 0 },
+      ] },
+      ...routes(grid()),
+    });
+    render(<RosterPage />);
+    fireEvent.change(await screen.findByLabelText('Minimum staff per day'), { target: { value: '2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check coverage' }));
+    expect(await screen.findByText('1 short')).toBeInTheDocument();
+    expect(within(screen.getByLabelText('Coverage summary')).getByText('1 / 2')).toBeInTheDocument();
+    expect(screen.getByText('Target met')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show shortfalls only' }));
+    expect(screen.queryByText('Target met')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Hourly planning rate'), { target: { value: '20.01' } });
+    expect(screen.getByRole('cell', { name: 'INR 10.01' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Hourly planning rate'), { target: { value: '20.001' } });
+    expect(screen.queryByRole('cell', { name: 'INR 10.01' })).not.toBeInTheDocument();
+    const request = api.mock.calls.find(([path]) => path.includes('/coverage'));
+    expect(new URLSearchParams(request[0].split('?')[1]).get('minimum')).toBe('2');
+    expect(api.mock.calls.filter(([path]) => path.includes('/coverage'))).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: `View roster for ${from}` }));
+    await waitFor(() => {
+      const dayRequest = api.mock.calls.find(([path]) => path.includes('/grid?view=day'));
+      expect(dayRequest?.[0]).toContain(`from=${from}&to=${from}&page=1`);
+    });
+    expect(within(screen.getByRole('group', { name: 'Period' })).getByText(from)).toHaveFocus();
+  });
+  it('checks staffing for the selected shift and labels the results', async () => {
+    mockApi(api, {
+      '/rosters/r1/coverage': {
+        shift: { uuid: 's1', name: 'General' },
+        data: [{ date: from, scheduled: 1, scheduled_minutes: 480, full_leave: 0, partial_leave: 0, available: 1, minimum: 2, shortfall: 1 }],
+      },
+      ...routes(grid()),
+    });
+    render(<RosterPage />);
+    const shift = await screen.findByLabelText('Coverage shift');
+    fireEvent.click(shift);
+    fireEvent.click(await screen.findByRole('option', { name: /General/ }));
+    fireEvent.change(screen.getByLabelText('Minimum staff per day'), { target: { value: '2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check coverage' }));
+    expect(await screen.findByText('Coverage for General')).toBeInTheDocument();
+    expect(screen.getByText('1 short')).toBeInTheDocument();
+    const [path] = api.mock.calls.find(([url]) => url.includes('/coverage'));
+    expect(new URLSearchParams(path.split('?')[1]).get('shift_uuid')).toBe('s1');
+  });
+  it('saves and clears a per-date staffing target from coverage results', async () => {
+    let saved = null;
+    mockApi(api, {
+      '/rosters/r1/coverage/target': (_path, { body }) => {
+        saved = body.minimum;
+        return { data: body };
+      },
+      '/rosters/r1/coverage': () => ({ data: [{
+        date: from, minimum: saved ?? 2, saved_minimum: saved, shortfall: saved ?? 2,
+      }] }),
+      ...routes(grid()),
+    });
+    render(<ToastProvider><RosterPage /></ToastProvider>);
+    fireEvent.change(await screen.findByLabelText('Minimum staff per day'), { target: { value: '2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Check coverage' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Edit target for/ }));
+    fireEvent.change(screen.getByLabelText('Saved staffing target'), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('0 (saved)')).toBeInTheDocument();
+    const filter = screen.getByRole('checkbox', { name: 'Show shortfalls only' });
+    fireEvent.click(filter);
+    expect(screen.getByText('All dates meet the staffing target')).toBeInTheDocument();
+    fireEvent.click(filter);
+    const [, request] = api.mock.calls.find(([path]) => path.endsWith('/coverage/target'));
+    expect(request).toMatchObject({ method: 'PUT', body: { date: from, minimum: 0, shift_uuid: null } });
+    fireEvent.click(screen.getByRole('button', { name: /Edit target for/ }));
+    fireEvent.change(screen.getByLabelText('Saved staffing target'), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('2 short')).toBeInTheDocument();
+    expect(screen.queryByText('0 (saved)')).not.toBeInTheDocument();
+  });
   it('shows draft, published and changed entries distinctly, each with a text label', async () => {
     mockApi(api, routes(grid()));
     render(<RosterPage />);
