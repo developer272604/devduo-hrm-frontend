@@ -13,6 +13,7 @@ import {
 import { AuthProvider, useAuth } from './lib/auth';
 import { ToastProvider, Skeleton, ErrorState, EmptyState, Button } from './components/ui';
 import Layout from './components/Layout';
+import { GuidePage } from './components/Guide';
 import { RegisterPage } from './pages/Register';
 import { AccountLocked } from './components/AccountStatus';
 import { OwnerPanelPage, OwnerCompanyPage } from './pages/owner/OwnerPages';
@@ -202,6 +203,7 @@ createRoot(document.getElementById('root')).render(
                       }
                     />
                     <Route path="security" element={<SecurityPage />} />
+                    <Route path="guide" element={<GuidePage />} />
                     <Route
                       path="forbidden"
                       element={

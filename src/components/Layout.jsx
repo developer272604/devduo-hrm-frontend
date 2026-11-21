@@ -29,8 +29,10 @@ import {
   Clock,
   SlidersHorizontal,
   CalendarClock,
+  CircleHelp,
 } from 'lucide-react';
 import { useAuth } from '../lib/auth';
+import { SectionIntro } from './Guide';
 import { managerDestinations } from '../pages/ManagerDashboard';
 import { TIME_OFFICE_ACCESS } from '../routes/attendanceRoutes';
 import { leaveNavItems } from '../routes/leaveRoutes';
@@ -116,7 +118,8 @@ export default function Layout() {
     [org, setOrg] = useState(false),
     [searchOpen, setSearchOpen] = useState(false),
     [query, setQuery] = useState(''),
-    [openMap, setOpenMap] = useState(readOpenMap);
+    [openMap, setOpenMap] = useState(readOpenMap),
+    [guideOpen, setGuideOpen] = useState(false);
   const location = useLocation(),
     navigate = useNavigate(),
     toast = useToast();
@@ -266,6 +269,7 @@ export default function Layout() {
       : []),
     ...(enabled('notifications') ? [{ to: '/notifications', label: 'Notifications', icon: Bell }] : []),
     { to: '/security', label: 'Password & security', icon: LockKeyhole },
+    { to: '/guide', label: 'Guide to your workspace', icon: CircleHelp, keywords: 'help tour how to what is' },
   ];
   const terms = query.trim().toLowerCase().split(/\s+/);
   const matches = destinations.filter((item) => {
@@ -420,6 +424,10 @@ export default function Layout() {
               <Search size={18} aria-hidden="true" />
               <span className="hidden xl:inline">Find a page</span>
             </Button>
+            <Button variant="ghost" className="px-2!" aria-label="About this page" title="About this page" onClick={() => setGuideOpen((v) => !v)}>
+              <CircleHelp size={18} aria-hidden="true" />
+              <span className="hidden xl:inline">About this page</span>
+            </Button>
             <ThemeToggle />
             {enabled('notifications') && (
               <Link
@@ -474,6 +482,9 @@ export default function Layout() {
           className="workspace-content mx-auto w-full min-w-0 max-w-[1530px] flex-1 px-8 pb-8 pt-6 max-xl:px-6 max-sm:px-4"
           key={location.pathname}
         >
+          {location.pathname !== '/guide' && (
+            <SectionIntro key={`${location.pathname}-${guideOpen}`} pathname={location.pathname} forceOpen={guideOpen} onClose={() => setGuideOpen(false)} />
+          )}
           <Outlet />
         </main>
         <Modal open={searchOpen} onClose={closeSearch} title="Find a page">
