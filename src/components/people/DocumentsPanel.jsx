@@ -6,6 +6,7 @@ import { useResource } from '../../lib/hooks';
 import { downloadDocument, fieldErrors, label, uploadDocument } from '../../lib/peopleApi';
 import { Badge, Button, ConfirmationDialog, EmptyState, FormError, Input, Modal, Resource, Select, useToast } from '../ui';
 import { useOptions } from './lookups';
+import EmployeeLetters from './EmployeeLetters';
 
 const TONES = { verified: 'green', pending: 'amber', rejected: 'amber' };
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -165,6 +166,7 @@ export default function DocumentsPanel({ uuid, mode = 'none' }) {
                 setBusy(false);
                 setRemoving(null);
               }} />
+            <EmployeeLetters key={uuid} uuid={uuid} />
           </section>
         );
       }}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../../lib/api';
+import { currencyOptions } from '../../lib/operationsApi';
 import { useAuth } from '../../lib/auth';
 import { useResource } from '../../lib/hooks';
 import { RemoteSelect } from '../../components/DomainWorkspace';
@@ -15,6 +16,7 @@ import {
   PageHeader,
   Pagination,
   Resource,
+  Select,
   Search,
   Tabs,
   useToast,
@@ -328,24 +330,144 @@ function ProjectMembers({ project }) {
   );
 }
 
-function Projects({ manage }) {
+function ProjectPlanning({ project, week, onClose, onSave }) {
+  const path = base + '/' + project.uuid + '/planning';
+  const resource = useResource(path + weekPath(week));
+  return (
+    <Modal open title={project.name + ' planning'} onClose={onClose}>
+      <Resource resource={resource}>
+        {(data) => <PlanningForm initial={data} path={path} week={week} onSave={onSave} />}
+      </Resource>
+    </Modal>
+  );
+}
+
+function PlanningForm({ initial, path, week, onSave }) {
+  const [client, setClient] = useState(initial.client_name ?? '');
+  const [capacity, setCapacity] = useState(initial.planned_minutes ?? '');
+  const [costingEnabled, setCostingEnabled] = useState(Boolean(initial.costing));
+  const [rates, setRates] = useState(
+    initial.costing ?? {
+      currency: '',
+      billing_rate: '',
+      labor_rate: '',
+      direct_cost: '0',
+    },
+  );
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
+  const toast = useToast();
+  return (
+    <form
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setBusy(true);
+        setError(null);
+        try {
+          await api(path, {
+            method: 'PUT',
+            body: {
+              week_start: week,
+              client_name: client.trim() || null,
+              planned_minutes: capacity === '' ? null : Number(capacity),
+              ...(costingEnabled || initial.costing
+                ? { costing: costingEnabled ? rates : null }
+                : {}),
+            },
+          });
+          toast('Project planning saved.');
+          onSave();
+        } catch (failure) {
+          setError(failure);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <FormError error={error} />
+      <Input
+        label="Client name"
+        hint="Applies to the project across all weeks."
+        value={client}
+        maxLength={150}
+        onChange={(event) => setClient(event.target.value)}
+      />
+      <Input
+        label="Planned minutes"
+        hint={'Capacity for the week of ' + week + '. Leave blank to clear this week’s plan.'}
+        type="number"
+        min={1}
+        max={60000000}
+        value={capacity}
+        onChange={(event) => setCapacity(event.target.value)}
+      />
+      <div className="mb-4">
+        <Checkbox
+          label="Configure weekly project costing"
+          checked={costingEnabled}
+          onChange={(event) => setCostingEnabled(event.target.checked)}
+        />
+      </div>
+      {costingEnabled && (
+        <div className="grid gap-x-4 sm:grid-cols-2">
+          <Select
+            label="Costing currency"
+            required
+            options={currencyOptions}
+            value={rates.currency}
+            onChange={(event) => setRates({ ...rates, currency: event.target.value })}
+          />
+          {[
+            ['billing_rate', 'Billing rate per hour'],
+            ['labor_rate', 'Labor cost per hour'],
+            ['direct_cost', 'Direct costs for the week'],
+          ].map(([key, label]) => (
+            <Input
+              key={key}
+              label={label}
+              required
+              inputMode="decimal"
+              maxLength={16}
+              value={rates[key]}
+              onChange={(event) => setRates({ ...rates, [key]: event.target.value })}
+            />
+          ))}
+        </div>
+      )}
+      <Button type="submit" loading={busy}>
+        Save planning
+      </Button>
+    </form>
+  );
+}
+
+function Projects({ manage, week }) {
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState(null);
+  const [planning, setPlanning] = useState(null);
   const [name, setName] = useState('');
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const resource = useResource(base + '?page=' + page);
   const columns = [{ key: 'name', label: 'Project' }];
   if (manage)
-    columns.push({
-      key: 'members',
-      label: 'Members',
-      render: (project) => (
-        <Button variant="secondary" onClick={() => setSelected(project)}>
-          Manage assignments
-        </Button>
-      ),
-    });
+    columns.push(
+      { key: 'client_name', label: 'Client' },
+      {
+        key: 'members',
+        label: 'Members',
+        render: (project) => (
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setSelected(project)}>
+              Manage assignments
+            </Button>
+            <Button variant="secondary" onClick={() => setPlanning(project)}>
+              Plan capacity
+            </Button>
+          </div>
+        ),
+      },
+    );
 
   return (
     <div className="grid gap-4">
@@ -390,6 +512,17 @@ function Projects({ manage }) {
           )}
         </Resource>
       </Card>
+      {planning && (
+        <ProjectPlanning
+          project={planning}
+          week={week}
+          onClose={() => setPlanning(null)}
+          onSave={() => {
+            setPlanning(null);
+            resource.reload();
+          }}
+        />
+      )}
       {selected && <ProjectMembers key={selected.uuid} project={selected} />}
     </div>
   );
@@ -476,16 +609,50 @@ function Reviews() {
   );
 }
 
+const costingAmount = (row, key) =>
+  row.costing ? row.costing.currency + ' ' + row.costing[key] : 'Unconfigured';
+
 function Report({ week }) {
   const resource = useResource(base + '/report' + weekPath(week));
   const columns = [
     { key: 'name', label: 'Project' },
+    { key: 'client_name', label: 'Client' },
     { key: 'billable', label: 'Billable hours', render: (row) => hours(row.billable) },
     { key: 'non_billable', label: 'Non-billable hours', render: (row) => hours(row.non_billable) },
     { key: 'total', label: 'Total hours', render: (row) => hours(row.billable + row.non_billable) },
+    {
+      key: 'planned_minutes',
+      label: 'Planned hours',
+      render: (row) => (row.planned_minutes ? hours(row.planned_minutes) : 'Unplanned'),
+    },
+    {
+      key: 'utilization',
+      label: 'Utilization',
+      render: (row) =>
+        row.planned_minutes
+          ? new Intl.NumberFormat(undefined, { style: 'percent', maximumFractionDigits: 1 }).format(
+              (row.billable + row.non_billable) / row.planned_minutes,
+            )
+          : 'Unplanned',
+    },
+    { key: 'revenue', label: 'Estimated revenue', render: (row) => costingAmount(row, 'revenue') },
+    {
+      key: 'total_cost',
+      label: 'Estimated cost',
+      render: (row) => costingAmount(row, 'total_cost'),
+    },
+    {
+      key: 'contribution',
+      label: 'Estimated contribution',
+      render: (row) => costingAmount(row, 'contribution'),
+    },
   ];
   return (
     <Card title="Approved project hours">
+      <p className="px-4 pb-3 text-xs">
+        Utilization compares approved hours with weekly capacity. Estimates use approved billable
+        time, labor rates and recorded direct costs.
+      </p>
       <Resource resource={resource}>
         {(rows) => (
           <DataTable columns={columns} rows={rows.map((row) => ({ ...row, id: row.project }))} />
@@ -528,7 +695,7 @@ export default function ProjectsPage() {
       <Card className="mb-4">
         <Tabs items={items} value={tab} onChange={setTab} />
       </Card>
-      {['timesheet', 'report'].includes(tab) && (
+      {(['timesheet', 'report'].includes(tab) || (tab === 'projects' && manage)) && (
         <div className="max-w-64">
           <Input
             label="Week of"
@@ -541,7 +708,7 @@ export default function ProjectsPage() {
         </div>
       )}
       {tab === 'timesheet' && <OwnTimesheet key={week} week={week} />}
-      {tab === 'projects' && <Projects manage={manage} />}
+      {tab === 'projects' && <Projects manage={manage} week={week} />}
       {tab === 'reviews' && <Reviews />}
       {tab === 'report' && <Report week={week} />}
     </>

@@ -262,6 +262,7 @@ export function AuthPage({ mode = 'login' }) {
   );
 }
 export function SecurityPage() {
+  const { enabled } = useAuth();
   const [form, setForm] = useState({
       current_password: '',
       password: '',
@@ -272,7 +273,9 @@ export function SecurityPage() {
     toast = useToast();
   return (
     <>
-      <PageHeader title="Password & security" description="Keep your account protected." />
+      <PageHeader title="Password & security" description="Keep your account protected."
+        action={enabled('security') && <Link to="/security/privacy" className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-brand-700 dark:border-slate-700 dark:bg-slate-900 dark:text-brand-300">Privacy requests</Link>}
+      />
       <Card title="Change your password" className="max-w-156">
         <form
           onSubmit={async (e) => {

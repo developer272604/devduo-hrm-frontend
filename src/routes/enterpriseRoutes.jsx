@@ -1,4 +1,6 @@
 import { Route } from 'react-router-dom';
+import Access from '../components/Access';
+import PrivacyRequestsPage from '../pages/security/PrivacyRequestsPage';
 import { ArrowRightLeft, ClipboardCheck, FileSearch, Gavel, Plug, Settings2, ShieldCheck, Sparkles } from 'lucide-react';
 import {
   AccessReviewsPage,
@@ -26,6 +28,7 @@ export const enterpriseRoutes = (
     <Route path="security/access-reviews" element={<AccessReviewsPage />} />
     <Route path="security/settings" element={<SecuritySettingsPage />} />
     <Route path="security/audit" element={<AuditReviewPage />} />
+    <Route path="security/privacy" element={<Access module="security"><PrivacyRequestsPage /></Access>} />
     <Route path="security/legal-holds" element={<LegalHoldPage />} />
     <Route path="security/compliance" element={<CompliancePage />} />
     <Route path="intelligence" element={<IntelligenceCenterPage />} />
