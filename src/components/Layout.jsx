@@ -292,7 +292,7 @@ export default function Layout() {
         title={collapsed ? x.label : undefined}
         onClick={() => setMobile(false)}
       >
-        <x.icon size={19} />
+        <x.icon size={18} />
         <span className="workspace-nav-label">{x.label}</span>
       </Link>
     );
@@ -338,7 +338,7 @@ export default function Layout() {
       <div className="mb-3 mt-1 px-3 text-[9px] font-semibold tracking-widest text-slate-400 dark:text-slate-400 group-data-[collapsed=true]/shell:hidden">
         WORKSPACE
       </div>
-      <nav aria-label="Main navigation">{pinned.map(item)}</nav>
+      <nav aria-label="Main navigation" className="group-data-[collapsed=true]/shell:mt-1">{pinned.map(item)}</nav>
       {NAV_GROUPS.map((g) => {
         const items = (groups[g.id] || []).filter((x) => can(x.permission) && enabled(x.module));
         const showOrg = g.id === 'people' && can('organization.view');
@@ -349,7 +349,7 @@ export default function Layout() {
           <div key={g.id} className="mt-1 group-data-[collapsed=true]/shell:mt-2 group-data-[collapsed=true]/shell:border-t group-data-[collapsed=true]/shell:border-slate-100 group-data-[collapsed=true]/shell:pt-2 dark:group-data-[collapsed=true]/shell:border-slate-800">
             <button
               type="button"
-              className={`mb-1 mt-2 flex w-full items-center justify-between rounded px-3 py-1.5 text-left text-[9px] font-semibold tracking-widest hover:bg-brand-50 dark:hover:bg-brand-950 group-data-[collapsed=true]/shell:hidden ${holdsActive ? 'text-brand-700 dark:text-brand-300' : 'text-slate-400 dark:text-slate-400'}`}
+              className={`mb-1.5 mt-4 flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-[9px] font-semibold tracking-widest hover:bg-brand-50 dark:hover:bg-brand-950 group-data-[collapsed=true]/shell:hidden ${holdsActive ? 'text-brand-700 dark:text-brand-300' : 'text-slate-400 dark:text-slate-400'}`}
               aria-expanded={open}
               aria-controls={`nav-group-${isMobile ? 'mobile' : 'desktop'}-${g.id}`}
               onClick={() => toggleGroup(g.id)}
@@ -367,12 +367,12 @@ export default function Layout() {
         );
       })}
       {admin.some(isVisible) && (
-        <>
+        <div className="mt-2 group-data-[collapsed=true]/shell:mt-2 group-data-[collapsed=true]/shell:border-t group-data-[collapsed=true]/shell:border-slate-100 group-data-[collapsed=true]/shell:pt-2 dark:group-data-[collapsed=true]/shell:border-slate-800">
           <div className="mb-3 mt-1 px-3 text-[9px] font-semibold tracking-widest text-slate-400 dark:text-slate-400 group-data-[collapsed=true]/shell:hidden">
             ADMINISTRATION
           </div>
           <nav aria-label="Administration">{admin.map(item)}</nav>
-        </>
+        </div>
       )}
     </>
   );
@@ -383,7 +383,7 @@ export default function Layout() {
   return (
     <div className="group/shell flex min-h-screen" data-collapsed={collapsed}>
       <a href="#workspace-content" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 dark:focus:bg-slate-900">Skip to content</a>
-      <aside aria-label="Workspace sidebar" className="workspace-sidebar fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 pb-4 min-[769px]:flex group-data-[collapsed=true]/shell:w-20 group-data-[collapsed=true]/shell:px-2 [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a]:hover:bg-brand-50 dark:[&_nav>a]:hover:bg-brand-950 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:font-semibold [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300 group-data-[collapsed=true]/shell:[&_nav>a>span]:hidden group-data-[collapsed=true]/shell:[&_nav>a]:justify-center">
+      <aside aria-label="Workspace sidebar" className="workspace-sidebar fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 pb-4 min-[769px]:flex group-data-[collapsed=true]/shell:w-20 group-data-[collapsed=true]/shell:px-2 [&_nav>a]:my-0.5 [&_nav>a]:flex [&_nav>a]:items-center [&_nav>a]:gap-3 [&_nav>a]:rounded-lg [&_nav>a]:px-3 [&_nav>a]:py-3 [&_nav>a]:text-xs [&_nav>a]:text-slate-500 dark:[&_nav>a]:text-slate-400 [&_nav>a]:hover:bg-brand-50 dark:[&_nav>a]:hover:bg-brand-950 [&_nav>a.active]:bg-brand-100 dark:[&_nav>a.active]:bg-brand-900 [&_nav>a.active]:font-semibold [&_nav>a.active]:text-brand-700 dark:[&_nav>a.active]:text-brand-300 group-data-[collapsed=true]/shell:[&_nav>a>span]:hidden group-data-[collapsed=true]/shell:[&_nav>a]:justify-center">
         <div className="flex shrink-0 items-center justify-between gap-1 pb-4 pt-5 group-data-[collapsed=true]/shell:flex-col group-data-[collapsed=true]/shell:gap-2">
           <Brand sidebar />
           <Button
@@ -404,7 +404,7 @@ export default function Layout() {
           {navigation(true)}
         </div>
       </Drawer>
-      <div className="flex min-h-screen w-full min-w-0 flex-col min-[769px]:ml-60 min-[769px]:w-[calc(100%_-_15rem)] group-data-[collapsed=true]/shell:min-[769px]:ml-20 group-data-[collapsed=true]/shell:min-[769px]:w-[calc(100%_-_5rem)]">
+      <div className="flex min-h-screen w-full min-w-0 flex-col min-[769px]:ml-64 min-[769px]:w-[calc(100%_-_16rem)] group-data-[collapsed=true]/shell:min-[769px]:ml-20 group-data-[collapsed=true]/shell:min-[769px]:w-[calc(100%_-_5rem)]">
         <TrialBanner />
         <header className="workspace-header sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-9 max-[769px]:h-16 max-[769px]:px-4">
           <div className="flex min-w-0 items-center gap-2.5">
