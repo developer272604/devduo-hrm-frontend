@@ -40,7 +40,7 @@ export function CommandCenterPage() {
               { label: 'Active runs', value: d.processing?.active_runs?.length },
               { label: 'Failed calculations', value: d.processing?.failed_calculations, tone: d.processing?.failed_calculations > 0 ? 'warn' : undefined },
               { label: 'Pending approvals', value: sum(d.pending_approvals?.payroll) + (Number(d.pending_approvals?.compensation) || 0) },
-              { label: 'Variance alerts', value: d.variance_alerts },
+              { label: 'Variance alerts', value: d.variance_alerts?.count ?? d.variance_alerts },
               { label: 'Locked runs', value: d.locks?.locked },
               { label: 'Reopen requests', value: d.locks?.reopen_requested },
             ]}
